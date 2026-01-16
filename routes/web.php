@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RoleController;
@@ -14,7 +15,7 @@ Route::prefix('/')->group(function () {
     Route::get('/contact', [PublicController::class, 'contact'])->name('public.contact');
     Route::get('/department_details', [PublicController::class, 'department_details'])->name('public.department_details');
     Route::get('/department', [PublicController::class, 'department'])->name('public.department');
-    Route::get('/doctors', [PublicController::class, 'doctors'])->name('public.doctors');
+    Route::get('/doctor', [PublicController::class, 'doctors'])->name('public.doctors');
     Route::get('/faq', [PublicController::class, 'faq'])->name('public.faq');
     Route::get('/gallery', [PublicController::class, 'gallery'])->name('public.gallery');
     Route::get('/gallery_details', [PublicController::class, 'gallery_details'])->name('public.gallery_details');
@@ -28,6 +29,7 @@ Route::prefix('/')->group(function () {
 
 Route::resource('roles', RoleController::class);
 Route::resource('users', UserController::class);
+Route::resource('doctors', DoctorController::class);
 
 Route::get('/dashboard', function () {
     return view('dashboard');
