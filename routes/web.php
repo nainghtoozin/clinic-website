@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
@@ -15,7 +16,7 @@ Route::prefix('/')->group(function () {
     Route::get('/contact', [PublicController::class, 'contact'])->name('public.contact');
     Route::get('/department_details', [PublicController::class, 'department_details'])->name('public.department_details');
     Route::get('/department', [PublicController::class, 'department'])->name('public.department');
-    Route::get('/doctor', [PublicController::class, 'doctors'])->name('public.doctors');
+    Route::get('/doctor-list', [PublicController::class, 'doctors'])->name('public.doctor-list');
     Route::get('/faq', [PublicController::class, 'faq'])->name('public.faq');
     Route::get('/gallery', [PublicController::class, 'gallery'])->name('public.gallery');
     Route::get('/gallery_details', [PublicController::class, 'gallery_details'])->name('public.gallery_details');
@@ -27,16 +28,15 @@ Route::prefix('/')->group(function () {
     Route::get('/testimonial', [PublicController::class, 'testimonial'])->name('public.testimonial');
 });
 
-Route::resource('roles', RoleController::class);
-Route::resource('users', UserController::class);
-Route::resource('doctors', DoctorController::class);
-
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-
+    Route::resource('roles', RoleController::class);
+    Route::resource('users', UserController::class);
+    Route::resource('doctors', DoctorController::class);
+    Route::resource('departments', DepartmentController::class);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -79,187 +79,41 @@
 
                     <div class="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="300">
 
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-cardiology">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-3.webp" class="img-fluid" alt="Dr. Amelia Brooks"
-                                        loading="lazy">
-                                    <span class="tag">Senior Consultant</span>
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Amelia Brooks</h3>
-                                    <p class="doctor-title">Cardiologist • MD, FACC</p>
-                                    <p class="doctor-desc">Nostrud tempor magna minim excepteur, id cillum laboris aute
-                                        proident.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Cardiology</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
+                        @foreach ($doctors as $doctor)
+                            <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-cardiology">
+                                <article class="doctor-card h-100">
+                                    <figure class="doctor-media">
+                                        <img src="{{ $doctor->profile_image ? asset('storage/' . $doctor->profile_image) : 'https://ui-avatars.com/api/?name=' . urlencode($doctor->name) }}"
+                                            class="img-fluid" alt="{{ $doctor->name }}" loading="lazy">
+                                        <span class="tag"> {{ $doctor->specialty }} </span>
+                                    </figure>
+                                    <div class="doctor-content">
+                                        <h3 class="doctor-name"> {{ $doctor->name }} </h3>
+                                        <p class="doctor-title"> {{ $doctor->role }} </p>
+                                        <p class="doctor-desc"> {{ Str::limit($doctor->biography, 100) }} </p>
+                                        <div class="doctor-meta">
+                                            <span class="badge dept"> {{ $doctor->department->name }} </span>
+                                        </div>
+                                        <div class="doctor-actions">
+                                            <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
+                                            <button type="button" class="btn btn-sm btn-soft" data-bs-toggle="modal"
+                                                data-bs-target="#viewDoctor{{ $doctor->id }}">
+                                                View Profile
+                                            </button>
 
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-pediatrics">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-7.webp" class="img-fluid" alt="Dr. Noah Turner"
-                                        loading="lazy">
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Noah Turner</h3>
-                                    <p class="doctor-title">Pediatrician • DO</p>
-                                    <p class="doctor-desc">Quis irure pariatur sed eiusmod, elit laboris consequat
-                                        cupidatat.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Pediatrics</span>
+                                        </div>
                                     </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
-
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-dermatology">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-12.webp" class="img-fluid" alt="Dr. Sofia Bennett"
-                                        loading="lazy">
-                                    <span class="tag alt">New</span>
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Sofia Bennett</h3>
-                                    <p class="doctor-title">Dermatologist • MBBS, MD</p>
-                                    <p class="doctor-desc">Dolor commodo laboris lorem ad, amet consequat mollit
-                                        deserunt.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Dermatology</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
-
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-orthopedics">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-5.webp" class="img-fluid" alt="Dr. Ethan Cole"
-                                        loading="lazy">
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Ethan Cole</h3>
-                                    <p class="doctor-title">Orthopedic Surgeon • MS, FRCS</p>
-                                    <p class="doctor-desc">Velit laborum minim laboris, eiusmod elit irure in
-                                        exercitation.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Orthopedics</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
-
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-cardiology">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-10.webp" class="img-fluid" alt="Dr. Maya Patel"
-                                        loading="lazy">
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Maya Patel</h3>
-                                    <p class="doctor-title">Interventional Cardiologist • MD</p>
-                                    <p class="doctor-desc">Cupidatat fugiat sint enim laboris, sed do ut aliquip dolor.
-                                    </p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Cardiology</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
-
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-pediatrics">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-2.webp" class="img-fluid"
-                                        alt="Dr. Oliver Hayes" loading="lazy">
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Oliver Hayes</h3>
-                                    <p class="doctor-title">Pediatric Specialist • MD</p>
-                                    <p class="doctor-desc">Exercitation id ea nisi fugiat, ullamco veniam cillum
-                                        nostrud.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Pediatrics</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
-
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-dermatology">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-9.webp" class="img-fluid" alt="Dr. Harper Lane"
-                                        loading="lazy">
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Harper Lane</h3>
-                                    <p class="doctor-title">Cosmetic Dermatologist • MD</p>
-                                    <p class="doctor-desc">Aliquip laboris anim minim, irure commodo qui occaecat
-                                        velit.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Dermatology</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
-
-                        <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-orthopedics">
-                            <article class="doctor-card h-100">
-                                <figure class="doctor-media">
-                                    <img src="assets/img/health/staff-6.webp" class="img-fluid" alt="Dr. Liam Carter"
-                                        loading="lazy">
-                                </figure>
-                                <div class="doctor-content">
-                                    <h3 class="doctor-name">Dr. Liam Carter</h3>
-                                    <p class="doctor-title">Sports Medicine • MD</p>
-                                    <p class="doctor-desc">Deserunt pariatur eiusmod duis, officia aute laboris
-                                        consectetur.</p>
-                                    <div class="doctor-meta">
-                                        <span class="badge dept">Orthopedics</span>
-                                    </div>
-                                    <div class="doctor-actions">
-                                        <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
-                                        <a href="#" class="btn btn-sm btn-soft">View Profile</a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div><!-- End Directory Item -->
+                                </article>
+                            </div><!-- End Directory Item -->
+                        @endforeach
 
                     </div><!-- End Directory Items Container -->
                 </div>
             </div><!-- End Filterable Doctor Directory -->
+
+            @foreach ($doctors as $doctor)
+                @include('doctor-details', ['doctor' => $doctor])
+            @endforeach
 
             <!-- Single Doctor Profile -->
             <div class="single-profile mt-5">

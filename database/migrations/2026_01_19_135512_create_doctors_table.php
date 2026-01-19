@@ -29,11 +29,15 @@ return new class extends Migration {
             // Description
             $table->text('short_description')->nullable();
             $table->longText('biography')->nullable();
+            $table->string('location')->nullable();
+            $table->foreignId('department_id')->nullable()->constrained()->cascadeOnDelete();
 
             // Status
             $table->boolean('is_available')->default(true);
             $table->string('availability_note')->nullable();
             $table->boolean('is_featured')->default(false);
+
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
             $table->timestamps();
         });

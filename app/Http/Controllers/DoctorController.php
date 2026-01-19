@@ -4,70 +4,130 @@ namespace App\Http\Controllers;
 
 use App\Models\Doctor;
 use App\Models\Department;
-use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class DoctorController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = Doctor::with(['departments', 'locations']);
-
-        if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('title', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->department) {
-            $query->whereHas('departments', function ($q) use ($request) {
-                $q->where('id', $request->department);
-            });
-        }
-
-        $doctors = $query->latest()->paginate(12);
-
-        $departments = Department::all();
-
-        return view('doctors.index', compact('doctors', 'departments'));
+        $doctors = Doctor::with('department')->latest()->paginate(10);
+        return view('doctors.index', compact('doctors'));
     }
 
     public function create()
     {
-        return view('doctors.create', [
-            'departments' => Department::all(),
-            'locations' => Location::all()
-        ]);
+        $departments = Department::all();
+        return view('doctors.create', compact('departments'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required',
-            'profile_image' => 'nullable|image',
-            'title' => 'nullable',
-            'role' => 'nullable',
-            'qualifications' => 'nullable',
-            'experience_years' => 'nullable|integer',
-            'short_description' => 'nullable',
-            'biography' => 'nullable',
-            'departments' => 'array',
-            'locations' => 'array'
+        $validated = $request->validate([
+            'name'              => 'required|string|max:255',
+            'gender'            => 'nullable|in:male,female,other',
+            'profile_image'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'department_id'     => 'nullable|exists:departments,id',
         ]);
 
-        $data['slug'] = Str::slug($request->name);
-        $data['board_certified'] = $request->has('board_certified');
-        $data['is_available'] = $request->has('is_available');
-
+        // 👉 Image Upload
+        $imagePath = null;
         if ($request->hasFile('profile_image')) {
-            $data['profile_image'] = $request->file('profile_image')->store('doctors', 'public');
+            $imagePath = $request->file('profile_image')
+                ->store('doctors', 'public');
         }
 
-        $doctor = Doctor::create($data);
+        Doctor::create([
+            'name'                => $request->name,
+            'slug'                => Str::slug($request->name),
+            'gender'              => $request->gender,
+            'profile_image'       => $imagePath,
 
-        $doctor->departments()->sync($request->departments);
-        $doctor->locations()->sync($request->locations);
+            'title'               => $request->title,
+            'role'                => $request->role,
+            'qualifications'      => $request->qualifications,
+            'experience_years'    => $request->experience_years ?? 0,
+            'board_certified'     => $request->board_certified ?? false,
 
-        return redirect()->route('doctors.index')->with('success', 'Doctor created successfully');
+            'primary_department'  => $request->primary_department,
+            'short_description'   => $request->short_description,
+            'biography'           => $request->biography,
+            'location'            => $request->location,
+            'department_id'       => $request->department_id,
+
+            'is_available'        => $request->is_available ?? true,
+            'availability_note'  => $request->availability_note,
+            'is_featured'         => $request->is_featured ?? false,
+
+            'user_id'             => auth()->id(),
+        ]);
+
+        return redirect()->route('doctors.index')
+            ->with('success', 'Doctor created successfully');
+    }
+
+    public function edit(Doctor $doctor)
+    {
+        $departments = Department::all();
+        return view('doctors.edit', compact('doctor', 'departments'));
+    }
+
+    public function update(Request $request, Doctor $doctor)
+    {
+        $validated = $request->validate([
+            'name'          => 'required|string|max:255',
+            'gender'        => 'nullable|in:male,female,other',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        // 👉 Image Replace
+        if ($request->hasFile('profile_image')) {
+
+            // delete old image
+            if ($doctor->profile_image && Storage::disk('public')->exists($doctor->profile_image)) {
+                Storage::disk('public')->delete($doctor->profile_image);
+            }
+
+            $doctor->profile_image = $request->file('profile_image')
+                ->store('doctors', 'public');
+        }
+
+        $doctor->update([
+            'name'                => $request->name,
+            'slug'                => Str::slug($request->name),
+            'gender'              => $request->gender,
+
+            'title'               => $request->title,
+            'role'                => $request->role,
+            'qualifications'      => $request->qualifications,
+            'experience_years'    => $request->experience_years,
+            'board_certified'     => $request->board_certified ?? false,
+
+            'primary_department'  => $request->primary_department,
+            'short_description'   => $request->short_description,
+            'biography'           => $request->biography,
+            'location'            => $request->location,
+            'department_id'       => $request->department_id,
+
+            'is_available'        => $request->is_available ?? false,
+            'availability_note'  => $request->availability_note,
+            'is_featured'         => $request->is_featured ?? false,
+        ]);
+
+        return redirect()->route('doctors.index')
+            ->with('success', 'Doctor updated successfully');
+    }
+
+    public function destroy(Doctor $doctor)
+    {
+        // 👉 delete image
+        if ($doctor->profile_image && Storage::disk('public')->exists($doctor->profile_image)) {
+            Storage::disk('public')->delete($doctor->profile_image);
+        }
+
+        $doctor->delete();
+
+        return back()->with('success', 'Doctor deleted successfully');
     }
 }

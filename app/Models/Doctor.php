@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Doctor extends Model
 {
-    use HasFactory;
 
+    use HasFactory;
     protected $fillable = [
         'name',
         'slug',
@@ -22,39 +22,27 @@ class Doctor extends Model
         'primary_department',
         'short_description',
         'biography',
+        'location',
+        'department_id',
         'is_available',
         'availability_note',
-        'is_featured'
+        'is_featured',
+        'user_id',
     ];
 
     protected $casts = [
-        'board_certified' => 'boolean',
         'is_available' => 'boolean',
+        'board_certified' => 'boolean',
         'is_featured' => 'boolean',
     ];
 
-    public function departments()
+    public function department()
     {
-        return $this->belongsToMany(Department::class);
+        return $this->belongsTo(Department::class);
     }
 
-    public function locations()
+    public function user()
     {
-        return $this->belongsToMany(Location::class);
-    }
-
-    public function schedules()
-    {
-        return $this->hasMany(DoctorSchedule::class);
-    }
-
-    public function reviews()
-    {
-        return $this->hasMany(DoctorReview::class);
-    }
-
-    public function highlights()
-    {
-        return $this->hasMany(DoctorHighlight::class);
+        return $this->belongsTo(User::class);
     }
 }

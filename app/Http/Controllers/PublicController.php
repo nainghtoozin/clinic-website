@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Doctor;
 use Illuminate\Http\Request;
 
 class PublicController extends Controller
@@ -42,7 +43,8 @@ class PublicController extends Controller
 
     public function doctors()
     {
-        return view('doctors');
+        $doctors = Doctor::with('department')->latest()->paginate(8);
+        return view('doctors', compact('doctors'));
     }
 
     public function faq()

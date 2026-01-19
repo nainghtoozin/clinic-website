@@ -55,7 +55,7 @@
                     <li><a href="{{ route('public.about') }}">About</a></li>
                     <li><a href="{{ route('public.department') }}">Departments</a></li>
                     <li><a href="{{ route('public.services') }}">Services</a></li>
-                    <li><a href="{{ route('public.doctors') }}">Doctors</a></li>
+                    <li><a href="{{ route('public.doctor-list') }}">Doctors</a></li>
                     <li class="dropdown"><a href="#"><span>More Pages</span> <i
                                 class="bi bi-chevron-down toggle-dropdown"></i></a>
                         <ul>

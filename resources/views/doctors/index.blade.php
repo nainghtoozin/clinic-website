@@ -1,68 +1,54 @@
-<!doctype html>
-<html>
+<x-auth-layout>
+    <x-page-header title="Doctors">
+        <x-slot:actions>
+            <a href="{{ route('doctors.create') }}" class="btn btn-primary">+ Add Doctor</a>
+        </x-slot:actions>
+    </x-page-header>
 
-<head>
-    <title>Doctors Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-
-    <nav class="navbar navbar-dark bg-primary mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('doctors.index') }}">Doctors</a>
-            <a href="{{ route('doctors.create') }}" class="btn btn-light btn-sm">+ Add Doctor</a>
+    @if (session('success'))
+        <div class="alert alert-info">
+            {{ session('success') }}
         </div>
-    </nav>
+    @endif
 
-    <div class="container">
-
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <form class="d-flex gap-2">
-                    <input type="text" name="search" class="form-control" placeholder="Search doctors">
-                    <select name="department" class="form-select">
-                        <option value="">All Departments</option>
-                        @foreach ($departments as $dept)
-                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                        @endforeach
-                    </select>
-                    <button class="btn btn-primary">Filter</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="row g-4">
+    <table class="table table-hover bg-white shadow-sm">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Experience</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
             @foreach ($doctors as $doctor)
-                <div class="col-md-3">
-                    <div class="card shadow-sm h-100">
-                        <img src="{{ asset('storage/' . $doctor->profile_image) }}" class="card-img-top"
-                            style="height:220px;object-fit:cover">
+                <tr>
+                    <td class="fw-semibold">{{ $doctor->name }}</td>
+                    <td>{{ $doctor->department?->name }}</td>
+                    <td>{{ $doctor->experience_years }} yrs</td>
+                    <td>
+                        <span class="badge {{ $doctor->is_available ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $doctor->is_available ? 'Available' : 'Unavailable' }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                            data-bs-target="#viewDoctor{{ $doctor->id }}">
+                            View
+                        </button>
+                        <a href="{{ route('doctors.edit', $doctor) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <form method="POST" action="{{ route('doctors.destroy', $doctor) }}" class="d-inline">
+                            @csrf @method('DELETE')
+                            <button onclick="return confirm('Delete?')" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
 
-                        <div class="card-body">
-                            <h5 class="mb-1">{{ $doctor->name }}</h5>
-                            <small class="text-muted">{{ $doctor->title }}</small>
-
-                            <p class="mt-2 small">
-                                {{ Str::limit($doctor->short_description, 80) }}
-                            </p>
-
-                            <span class="badge bg-info">
-                                {{ $doctor->primary_department }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                @include('doctors.show')
             @endforeach
-        </div>
+        </tbody>
+    </table>
 
-        <div class="mt-4">
-            {{ $doctors->links() }}
-        </div>
-
-
-    </div>
-
-</body>
-
-</html>
+    {{ $doctors->links() }}
+</x-auth-layout>

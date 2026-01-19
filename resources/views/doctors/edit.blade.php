@@ -10,9 +10,10 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('doctors.store') }}" enctype="multipart/form-data">
+
+    <form method="POST" action="{{ route('doctors.update', $doctor) }}" enctype="multipart/form-data">
         @include('doctors._form', [
-            'formTitle' => 'Add New Doctor',
+            'formTitle' => 'Edit Doctor Information',
         ])
     </form>
 </x-auth-layout>
