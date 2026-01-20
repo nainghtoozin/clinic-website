@@ -38,6 +38,7 @@ return new class extends Migration {
             $table->boolean('is_featured')->default(false);
 
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('location_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->timestamps();
         });

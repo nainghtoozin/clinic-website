@@ -1,35 +1,27 @@
 <x-auth-layout>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0 fw-bold">Create Department</h5>
-                </div>
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    <div class="container">
+        <h4 class="mb-4">➕ Create Department</h4>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route('departments.store') }}">
-                        @csrf
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <form method="POST" action="{{ route('departments.store') }}" enctype="multipart/form-data">
+                    @csrf
 
-                        <div class="mb-3">
-                            <label class="form-label">Department Name</label>
-                            <input type="text" name="name"
-                                class="form-control @error('name') is-invalid @enderror" placeholder="e.g. Cardiology"
-                                value="{{ old('name') }}">
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                    @include('departments.partials.form')
 
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('departments.index') }}" class="btn btn-light">
-                                Cancel
-                            </a>
-                            <button class="btn btn-primary">
-                                Save Department
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="text-end">
+                        <button class="btn btn-primary">Save Department</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DepartmentController extends Controller
 {
     public function index()
     {
-        $departments = Department::latest()->paginate(10);
+        $departments = Department::orderBy('sort_order')->paginate(10);
         return view('departments.index', compact('departments'));
     }
 
@@ -21,16 +22,27 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $data = $request->validate([
+            'name'        => 'required|string|max:255',
+            'category'    => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'icon'        => 'nullable|string|max:100',
+            'image'       => 'nullable|image|max:2048nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active'   => 'nullable|boolean',
+            'sort_order'  => 'nullable|integer',
         ]);
 
-        Department::create([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-        ]);
+        $data['slug'] = Str::slug($data['name']);
+        $data['is_active'] = $request->has('is_active');
 
-        return redirect()->route('departments.index')
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('departments', 'public');
+        }
+
+        Department::create($data);
+
+        return redirect()
+            ->route('departments.index')
             ->with('success', 'Department created successfully.');
     }
 
@@ -41,24 +53,43 @@ class DepartmentController extends Controller
 
     public function update(Request $request, Department $department)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $data = $request->validate([
+            'name'        => 'required|string|max:255',
+            'category'    => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'icon'        => 'nullable|string|max:100',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active'   => 'nullable|boolean',
+            'sort_order'  => 'nullable|integer',
         ]);
 
-        $department->update([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-        ]);
+        $data['slug'] = Str::slug($data['name']);
+        $data['is_active'] = $request->has('is_active');
 
-        return redirect()->route('departments.index')
+        if ($request->hasFile('image')) {
+            if ($department->image) {
+                Storage::disk('public')->delete($department->image);
+            }
+            $data['image'] = $request->file('image')->store('departments', 'public');
+        }
+
+        $department->update($data);
+
+        return redirect()
+            ->route('departments.index')
             ->with('success', 'Department updated successfully.');
     }
 
     public function destroy(Department $department)
     {
+        if ($department->image) {
+            Storage::disk('public')->delete($department->image);
+        }
+
         $department->delete();
 
-        return redirect()->route('departments.index')
+        return redirect()
+            ->route('departments.index')
             ->with('success', 'Department deleted successfully.');
     }
 }

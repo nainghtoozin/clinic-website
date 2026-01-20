@@ -45,8 +45,12 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <h5 class="text-white text-center py-4 mb-0">Clinic Admin</h5>
-            <a href="#" class="active"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
-            <a href="#"><i class="bi bi-person-badge me-2"></i> Doctors</a>
+            <a href="{{ route('dashboard') }}" class="active"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+            <a href="{{ route('doctors.index') }}"><i class="bi bi-person-badge me-2"></i> Doctors</a>
+            <a href="{{ route('users.index') }}"><i class="bi bi-person-badge me-2"></i> Users</a>
+            <a href="{{ route('roles.index') }}"><i class="bi bi-person-badge me-2"></i> Roles</a>
+            <a href="{{ route('departments.index') }}"><i class="bi bi-person-badge me-2"></i> Departments</a>
+            <a href="{{ route('locations.index') }}"><i class="bi bi-person-badge me-2"></i> Locations</a>
             <a href="#"><i class="bi bi-calendar-check me-2"></i> Appointments</a>
             <a href="#"><i class="bi bi-people me-2"></i> Patients</a>
             <a href="#"><i class="bi bi-chat-left-text me-2"></i> Reviews</a>

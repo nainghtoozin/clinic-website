@@ -1,17 +1,4 @@
-<!doctype html>
-<html lang="{{ app()->getLocale() }}">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Clinic Website') }}</title>
-
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-
+<x-auth-layout>
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -76,7 +63,4 @@
             </div>
         </div>
     </div>
-
-</body>
-
-</html>
+</x-auth-layout>

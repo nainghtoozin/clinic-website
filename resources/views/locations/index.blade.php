@@ -1,17 +1,14 @@
 <x-auth-layout>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">👤 Users</h4>
-            <a href="{{ route('users.create') }}" class="btn btn-primary">
-                + Add User
+            <h4 class="mb-0">📍 Locations</h4>
+            <a href="{{ route('locations.create') }}" class="btn btn-primary">
+                + Add Location
             </a>
         </div>
 
         @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
         <div class="card shadow-sm border-0">
@@ -21,31 +18,24 @@
                         <tr>
                             <th>#</th>
                             <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th width="160">Action</th>
+                            <th>Slug</th>
+                            <th>Description</th>
+                            <th width="150">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($users as $user)
+                        @forelse($locations as $location)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td class="fw-semibold">{{ $user->name }}</td>
-                                <td>{{ $user->email }}</td>
+                                <td class="fw-semibold">{{ $location->name }}</td>
+                                <td class="text-muted">{{ $location->slug }}</td>
+                                <td>{{ Str::limit($location->description, 40) }}</td>
                                 <td>
-                                    @foreach ($user->roles as $role)
-                                        <span class="badge bg-info text-dark">
-                                            {{ ucfirst($role->name) }}
-                                        </span>
-                                    @endforeach
-                                </td>
-                                <td>
-                                    <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary">
-                                        Edit
-                                    </a>
+                                    <a href="{{ route('locations.edit', $location) }}"
+                                        class="btn btn-sm btn-outline-primary">Edit</a>
 
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline"
-                                        onsubmit="return confirm('Delete this user?')">
+                                    <form action="{{ route('locations.destroy', $location) }}" method="POST"
+                                        class="d-inline" onsubmit="return confirm('Delete this location?')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger">
@@ -57,7 +47,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted py-4">
-                                    No users found.
+                                    No locations found.
                                 </td>
                             </tr>
                         @endforelse
@@ -67,7 +57,7 @@
         </div>
 
         <div class="mt-3">
-            {{ $users->links() }}
+            {{ $locations->links() }}
         </div>
     </div>
 </x-auth-layout>

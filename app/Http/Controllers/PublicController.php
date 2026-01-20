@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Doctor;
+use App\Models\Department;
+use App\Models\Location;
 use Illuminate\Http\Request;
 
 class PublicController extends Controller
@@ -33,7 +35,8 @@ class PublicController extends Controller
 
     public function department()
     {
-        return view('department');
+        $departments = Department::orderBy('sort_order')->paginate(10);
+        return view('department', compact('departments'));
     }
 
     public function department_details()
@@ -41,10 +44,36 @@ class PublicController extends Controller
         return view('department-details');
     }
 
-    public function doctors()
+    public function doctors(Request $request)
     {
-        $doctors = Doctor::with('department')->latest()->paginate(8);
-        return view('doctors', compact('doctors'));
+        $query = Doctor::with(['department', 'location']);
+
+        // 🔍 Name search
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        // 🏥 Department filter
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        // 📍 Location filter
+        if ($request->filled('location_id')) {
+            $query->where('location_id', $request->location_id);
+        }
+
+        // ✅ Status filter
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status);
+        }
+
+        $doctors = $query->latest()->paginate(10)->withQueryString();
+        return view('doctors', [
+            'doctors'     => $doctors,
+            'departments' => Department::orderBy('name')->get(),
+            'locations'   => Location::orderBy('name')->get(),
+        ]);
     }
 
     public function faq()

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Department;
 use App\Models\Doctor;
+use App\Models\Location;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -22,7 +23,8 @@ class DatabaseSeeder extends Seeder
 
         // Departments (5)
         Department::factory()->count(5)->create();
-
+        // Locations (5)
+        Location::factory()->count(5)->create();
         // Doctors (30)
         Doctor::factory()->count(30)->create();
 

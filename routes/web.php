@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use phpDocumentor\Reflection\Location;
 
 Route::prefix('/')->group(function () {
     Route::get('/', [PublicController::class, 'index'])->name('public.index');
@@ -37,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('doctors', DoctorController::class);
     Route::resource('departments', DepartmentController::class);
+    Route::resource('locations', LocationController::class);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Doctor;
 use App\Models\Department;
+use App\Models\Location;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -60,6 +61,7 @@ class DoctorFactory extends Factory
 
             // User
             'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
+            'location_id' => Location::inRandomOrder()->first()?->id,
         ];
     }
 }
