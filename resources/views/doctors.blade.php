@@ -172,7 +172,8 @@
                                             <span class="badge dept"> {{ $doctor->department->name }} </span>
                                         </div>
                                         <div class="doctor-actions">
-                                            <a href="#" class="btn btn-sm btn-appointment">Book Appointment</a>
+                                            <a href="{{ route('appointments.create', ['doctor' => $doctor->id]) }}"
+                                                class="btn btn-sm btn-appointment">Book Appointment</a>
                                             <button type="button" class="btn btn-sm btn-soft" data-bs-toggle="modal"
                                                 data-bs-target="#viewDoctor{{ $doctor->id }}">
                                                 View Profile

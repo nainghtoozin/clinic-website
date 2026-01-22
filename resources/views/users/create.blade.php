@@ -1,4 +1,14 @@
 <x-auth-layout>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <div class="container">
         <h4 class="mb-4">➕ Create User</h4>
 

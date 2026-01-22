@@ -61,7 +61,7 @@
                         <ul>
                             <li><a href="{{ route('public.department_details') }}">Department Details</a></li>
                             <li><a href="{{ route('public.service_details') }}">Service Details</a></li>
-                            <li><a href="{{ route('public.appointment') }}">Appointment</a></li>
+                            <li><a href="{{ route('appointments.create') }}">Appointment</a></li>
                             <li><a href="{{ route('public.testimonial') }}">Testimonials</a></li>
                             <li><a href="{{ route('public.faq') }}">Frequently Asked Questions</a></li>
                             <li><a href="{{ route('public.gallery') }}">Gallery</a></li>
@@ -94,7 +94,7 @@
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
-            <a class="btn-getstarted" href="{{ route('public.appointment') }}">Apointment</a>
+            <a class="btn-getstarted" href="{{ route('appointments.create') }}">Apointment</a>
 
         </div>
     </header>

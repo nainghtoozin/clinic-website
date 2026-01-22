@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\LocationController;
@@ -14,7 +15,7 @@ Route::prefix('/')->group(function () {
     Route::get('/', [PublicController::class, 'index'])->name('public.index');
     Route::get('/error', [PublicController::class, 'error'])->name('public.error');
     Route::get('/about', [PublicController::class, 'about'])->name('public.about');
-    Route::get('/appointment', [PublicController::class, 'appointment'])->name('public.appointment');
+    //Route::get('/appointment', [PublicController::class, 'appointment'])->name('public.appointment');
     Route::get('/contact', [PublicController::class, 'contact'])->name('public.contact');
     Route::get('/department_details', [PublicController::class, 'department_details'])->name('public.department_details');
     Route::get('/department', [PublicController::class, 'department'])->name('public.department');
@@ -29,6 +30,13 @@ Route::prefix('/')->group(function () {
     Route::get('/terms', [PublicController::class, 'terms'])->name('public.terms');
     Route::get('/testimonial', [PublicController::class, 'testimonial'])->name('public.testimonial');
 });
+
+Route::get('/appointments/create', [AppointmentController::class, 'create'])
+    ->name('appointments.create');
+
+Route::post('/appointments', [AppointmentController::class, 'store'])
+    ->name('appointments.store');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');

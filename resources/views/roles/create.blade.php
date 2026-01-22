@@ -22,17 +22,32 @@
                             <!-- Permissions -->
                             @foreach ($permissions as $group => $items)
                                 <div class="card mb-3 border">
-                                    <div class="card-header bg-light fw-semibold text-uppercase">
-                                        {{ $group }} Permissions
+
+                                    <!-- Group Header + Check All -->
+                                    <div
+                                        class="card-header bg-light fw-semibold text-uppercase d-flex justify-content-between align-items-center">
+                                        <span>{{ $group }} Permissions</span>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input check-all" type="checkbox"
+                                                data-group="{{ $group }}" id="checkAll-{{ $group }}">
+                                            <label class="form-check-label text-capitalize"
+                                                for="checkAll-{{ $group }}">
+                                                Check All
+                                            </label>
+                                        </div>
                                     </div>
 
+                                    <!-- Permission Items -->
                                     <div class="card-body">
                                         <div class="row">
                                             @foreach ($items as $permission)
                                                 <div class="col-md-4 col-sm-6 mb-2">
                                                     <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            name="permissions[]" value="{{ $permission->name }}"
+                                                        <input class="form-check-input permission-checkbox"
+                                                            type="checkbox" name="permissions[]"
+                                                            value="{{ $permission->name }}"
+                                                            data-group="{{ $group }}"
                                                             id="{{ $permission->name }}">
 
                                                         <label class="form-check-label" for="{{ $permission->name }}">
@@ -43,6 +58,7 @@
                                             @endforeach
                                         </div>
                                     </div>
+
                                 </div>
                             @endforeach
 
@@ -63,4 +79,47 @@
             </div>
         </div>
     </div>
+
+    <!-- ✅ CHECK ALL + AUTO CHECK SCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 1️⃣ Check All → toggle all permissions in group
+            document.querySelectorAll('.check-all').forEach(checkAll => {
+                checkAll.addEventListener('change', function() {
+                    const group = this.dataset.group;
+                    const checked = this.checked;
+
+                    document.querySelectorAll(
+                        '.permission-checkbox[data-group="' + group + '"]'
+                    ).forEach(cb => {
+                        cb.checked = checked;
+                    });
+                });
+            });
+
+            // 2️⃣ Individual permission → auto toggle Check All
+            document.querySelectorAll('.permission-checkbox').forEach(permission => {
+                permission.addEventListener('change', function() {
+                    const group = this.dataset.group;
+
+                    const permissions = document.querySelectorAll(
+                        '.permission-checkbox[data-group="' + group + '"]'
+                    );
+
+                    const allChecked = Array.from(permissions)
+                        .every(cb => cb.checked);
+
+                    const checkAll = document.querySelector(
+                        '.check-all[data-group="' + group + '"]'
+                    );
+
+                    if (checkAll) {
+                        checkAll.checked = allChecked;
+                    }
+                });
+            });
+
+        });
+    </script>
 </x-auth-layout>

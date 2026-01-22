@@ -27,7 +27,7 @@ class UserController extends Controller
             'name'     => 'required',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'roles'    => 'required|array'
+            'role'    => 'required|exists:roles,name'
         ]);
 
         $user = User::create([
@@ -36,7 +36,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->assignRole($request->roles);
+        $user->assignRole($request->role);
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully');
@@ -55,7 +55,7 @@ class UserController extends Controller
         $request->validate([
             'name'  => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'roles' => 'required|array'
+            'role' => 'required|exists:roles,name'
         ]);
 
         $user->update([
@@ -69,7 +69,7 @@ class UserController extends Controller
             ]);
         }
 
-        $user->syncRoles($request->roles);
+        $user->syncRoles($request->role);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully');
