@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\LocationController;
@@ -38,9 +39,7 @@ Route::post('/appointments', [AppointmentController::class, 'store'])
     ->name('appointments.store');
 
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::resource('roles', RoleController::class);
@@ -48,6 +47,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('doctors', DoctorController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('locations', LocationController::class);
+
+    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+    Route::get('/appointments/ajax', [AppointmentController::class, 'ajaxIndex'])->name('appointments.ajax');
+    Route::post('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.status');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

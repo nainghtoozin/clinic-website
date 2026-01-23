@@ -7,7 +7,7 @@
             <div class="card stat-card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted">Doctors</h6>
-                    <h3 class="counter" data-count="24">0</h3>
+                    <h3>{{ $doctorCount }}</h3>
                     <i class="bi bi-person-badge fs-3 text-primary"></i>
                 </div>
             </div>
@@ -17,7 +17,7 @@
             <div class="card stat-card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted">Appointments</h6>
-                    <h3 class="counter" data-count="128">0</h3>
+                    <h3>{{ $appointmentCount }}</h3>
                     <i class="bi bi-calendar-check fs-3 text-success"></i>
                 </div>
             </div>
@@ -29,6 +29,48 @@
                     <h6 class="text-muted">Patients</h6>
                     <h3 class="counter" data-count="312">0</h3>
                     <i class="bi bi-people fs-3 text-warning"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Reviews</h6>
+                    <h3 class="counter" data-count="89">0</h3>
+                    <i class="bi bi-star-fill fs-3 text-danger"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Pending</h6>
+                    <h3>{{ $pending }}</h3>
+                    <i class="bi bi-clock fs-3 text-warning"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Cancelled</h6>
+                    <h3>{{ $cancelled }}</h3>
+                    <i class="bi bi-x-circle fs-3 text-danger"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Completed</h6>
+                    <h3>{{ $completed }}</h3>
+                    <i class="bi bi-check-circle fs-3 text-success"></i>
                 </div>
             </div>
         </div>
@@ -59,29 +101,37 @@
                             <tr>
                                 <th>Patient</th>
                                 <th>Doctor</th>
+                                <th>Department</th>
                                 <th>Date</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>John Smith</td>
-                                <td>Dr. Amelia Brooks</td>
-                                <td>Jan 20, 10:00 AM</td>
-                                <td><span class="badge bg-success">Confirmed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Emma Watson</td>
-                                <td>Dr. Noah Turner</td>
-                                <td>Jan 21, 01:30 PM</td>
-                                <td><span class="badge bg-warning">Pending</span></td>
-                            </tr>
-                            <tr>
-                                <td>Michael Lee</td>
-                                <td>Dr. Sofia Bennett</td>
-                                <td>Jan 22, 09:00 AM</td>
-                                <td><span class="badge bg-danger">Cancelled</span></td>
-                            </tr>
+                        <tbody>
+                            @forelse($appointments as $appointment)
+                                <tr>
+                                    <td>{{ $appointment->name }}</td>
+                                    <td>{{ $appointment->doctor->name }}</td>
+                                    <td>{{ $appointment->department->name }}</td>
+                                    <td>{{ $appointment->date }}</td>
+                                    <td class="text-center">
+                                        <span
+                                            class="badge bg-{{ $appointment->status === 'approved'
+                                                ? 'success'
+                                                : ($appointment->status === 'cancelled'
+                                                    ? 'danger'
+                                                    : 'warning') }}">
+                                            {{ ucfirst($appointment->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">
+                                        No appointments found
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
