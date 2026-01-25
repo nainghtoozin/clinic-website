@@ -41,12 +41,13 @@ Route::post('/appointments', [AppointmentController::class, 'store'])
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
     Route::resource('doctors', DoctorController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('locations', LocationController::class);
+
 
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/ajax', [AppointmentController::class, 'ajaxIndex'])->name('appointments.ajax');

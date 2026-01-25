@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class DoctorController extends Controller
 {
+
     public function index(Request $request)
     {
         $query = Doctor::with(['department', 'location']);
@@ -31,8 +32,8 @@ class DoctorController extends Controller
         }
 
         // ✅ Status filter
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status);
+        if ($request->filled('is_available')) {
+            $query->where('is_available', $request->is_available);
         }
 
         $doctors = $query->latest()->paginate(10)->withQueryString();

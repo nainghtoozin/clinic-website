@@ -2,9 +2,11 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">📍 Locations</h4>
-            <a href="{{ route('locations.create') }}" class="btn btn-primary">
-                + Add Location
-            </a>
+            @can('location.create')
+                <a href="{{ route('locations.create') }}" class="btn btn-primary">
+                    + Add Location
+                </a>
+            @endcan
         </div>
 
         @if (session('success'))
@@ -31,17 +33,21 @@
                                 <td class="text-muted">{{ $location->slug }}</td>
                                 <td>{{ Str::limit($location->description, 40) }}</td>
                                 <td>
-                                    <a href="{{ route('locations.edit', $location) }}"
-                                        class="btn btn-sm btn-outline-primary">Edit</a>
+                                    @can('location.edit')
+                                        <a href="{{ route('locations.edit', $location) }}"
+                                            class="btn btn-sm btn-outline-primary">Edit</a>
+                                    @endcan
 
-                                    <form action="{{ route('locations.destroy', $location) }}" method="POST"
-                                        class="d-inline" onsubmit="return confirm('Delete this location?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    @can('location.delete')
+                                        <form action="{{ route('locations.destroy', $location) }}" method="POST"
+                                            class="d-inline" onsubmit="return confirm('Delete this location?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

@@ -2,9 +2,11 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">👤 Users</h4>
-            <a href="{{ route('users.create') }}" class="btn btn-primary">
-                + Add User
-            </a>
+            @can('user.create')
+                <a href="{{ route('users.create') }}" class="btn btn-primary">
+                    + Add User
+                </a>
+            @endcan
         </div>
 
         @if (session('success'))
@@ -40,18 +42,22 @@
                                     @endforeach
                                 </td>
                                 <td>
-                                    <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary">
-                                        Edit
-                                    </a>
+                                    @can('user.edit')
+                                        <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+                                    @endcan
 
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline"
-                                        onsubmit="return confirm('Delete this user?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    @can('user.delete')
+                                        <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline"
+                                            onsubmit="return confirm('Delete this user?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

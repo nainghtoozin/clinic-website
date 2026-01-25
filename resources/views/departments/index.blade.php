@@ -3,9 +3,11 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">🏥 Departments</h4>
-            <a href="{{ route('departments.create') }}" class="btn btn-primary">
-                + Add Department
-            </a>
+            @can('department.create')
+                <a href="{{ route('departments.create') }}" class="btn btn-primary">
+                    + Add Department
+                </a>
+            @endcan
         </div>
 
         @if (session('success'))
@@ -45,17 +47,21 @@
                                 </td>
                                 <td>{{ $department->sort_order }}</td>
                                 <td>
-                                    <a href="{{ route('departments.edit', $department) }}"
-                                        class="btn btn-sm btn-outline-primary">Edit</a>
+                                    @can('dapartment.edit')
+                                        <a href="{{ route('departments.edit', $department) }}"
+                                            class="btn btn-sm btn-outline-primary">Edit</a>
+                                    @endcan
 
-                                    <form action="{{ route('departments.destroy', $department) }}" method="POST"
-                                        class="d-inline" onsubmit="return confirm('Delete this department?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    @can('department.delete')
+                                        <form action="{{ route('departments.destroy', $department) }}" method="POST"
+                                            class="d-inline" onsubmit="return confirm('Delete this department?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

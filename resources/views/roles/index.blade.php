@@ -4,9 +4,11 @@
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">Roles & Permissions</h4>
-            <a href="{{ route('roles.create') }}" class="btn btn-primary">
-                + Create Role
-            </a>
+            @can('role.create')
+                <a href="{{ route('roles.create') }}" class="btn btn-primary">
+                    + Create Role
+                </a>
+            @endcan
         </div>
 
         <!-- Card -->
@@ -39,21 +41,26 @@
                                 </td>
 
                                 <td class="text-end">
-                                    <a href="{{ route('roles.edit', $role->id) }}"
-                                        class="btn btn-sm btn-outline-primary">
-                                        Edit
-                                    </a>
+                                    @can('role.edit')
+                                        <a href="{{ route('roles.edit', $role->id) }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+                                    @endcan
 
-                                    <form action="{{ route('roles.destroy', $role->id) }}" method="POST"
-                                        class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
 
-                                        <button class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Are you sure?')">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    @can('role.delete')
+                                        <form action="{{ route('roles.destroy', $role->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Are you sure?')">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

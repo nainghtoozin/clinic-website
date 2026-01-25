@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use Illuminate\Routing\Controller as BaseController;
+use App\Http\Controllers\Controller;
 
-abstract class Controller extends BaseController
+class BaseController extends Controller
 {
     protected string $permissionPrefix = '';
 

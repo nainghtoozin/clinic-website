@@ -17,10 +17,10 @@ class PermissionSeeder extends Seeder
             'patient.edit',
             'patient.delete',
 
-            'doctors.view',
-            'doctors.create',
-            'doctors.edit',
-            'doctors.delete',
+            'doctor.view',
+            'doctor.create',
+            'doctor.edit',
+            'doctor.delete',
 
             // Appointment
             'appointment.view',
@@ -39,15 +39,29 @@ class PermissionSeeder extends Seeder
             'user.edit',
             'user.delete',
 
+            // Role
             'role.view',
             'role.create',
             'role.edit',
-            'role.delete'
+            'role.delete',
+
+            //Department
+            'department.view',
+            'department.create',
+            'department.edit',
+            'department.delete',
+
+            //Location
+            'location.view',
+            'location.create',
+            'location.edit',
+            'location.delete',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate([
-                'name' => $permission
+                'name' => $permission,
+                'guard_name' => 'web',
             ]);
         }
     }

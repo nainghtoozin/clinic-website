@@ -46,14 +46,24 @@
         <aside class="sidebar">
             <h5 class="text-white text-center py-4 mb-0">Clinic Admin</h5>
             <a href="{{ route('dashboard') }}" class="active"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
-            <a href="{{ route('doctors.index') }}"><i class="bi bi-person-badge me-2"></i> Doctors</a>
-            <a href="{{ route('users.index') }}"><i class="bi bi-person-badge me-2"></i> Users</a>
-            @can('permission:role.view')
+            @can('doctors.view')
+                <a href="{{ route('doctors.index') }}"><i class="bi bi-person-badge me-2"></i> Doctors</a>
+            @endcan
+            @can('user.view')
+                <a href="{{ route('users.index') }}"><i class="bi bi-person-badge me-2"></i> Users</a>
+            @endcan
+            @can('role.view')
                 <a href="{{ route('roles.index') }}"><i class="bi bi-person-badge me-2"></i> Roles</a>
             @endcan
-            <a href="{{ route('departments.index') }}"><i class="bi bi-person-badge me-2"></i> Departments</a>
-            <a href="{{ route('locations.index') }}"><i class="bi bi-person-badge me-2"></i> Locations</a>
-            <a href="{{ route('appointments.index') }}"><i class="bi bi-calendar-check me-2"></i> Appointments</a>
+            @can('department.view')
+                <a href="{{ route('departments.index') }}"><i class="bi bi-person-badge me-2"></i> Departments</a>
+            @endcan
+            @can('location.view')
+                <a href="{{ route('locations.index') }}"><i class="bi bi-person-badge me-2"></i> Locations</a>
+            @endcan
+            @can('appointment.view')
+                <a href="{{ route('appointments.index') }}"><i class="bi bi-calendar-check me-2"></i> Appointments</a>
+            @endcan
             <a href="#"><i class="bi bi-people me-2"></i> Patients</a>
             <a href="#"><i class="bi bi-chat-left-text me-2"></i> Reviews</a>
             <a href="#"><i class="bi bi-gear me-2"></i> Settings</a>

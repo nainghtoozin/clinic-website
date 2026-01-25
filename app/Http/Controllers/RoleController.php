@@ -9,24 +9,25 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
-    public function __construct()
-    {
-        // VIEW
-        $this->middleware('permission:role.view')
-            ->only(['index', 'show']);
+    protected string $permissionPrefix = 'role';
+    // public function __construct()
+    // {
+    //     // VIEW
+    //     $this->middleware('permission:role.view')
+    //         ->only(['index', 'show']);
 
-        // CREATE
-        $this->middleware('permission:role.create')
-            ->only(['create', 'store']);
+    //     // CREATE
+    //     $this->middleware('permission:role.create')
+    //         ->only(['create', 'store']);
 
-        // EDIT
-        $this->middleware('permission:role.edit')
-            ->only(['edit', 'update']);
+    //     // EDIT
+    //     $this->middleware('permission:role.edit')
+    //         ->only(['edit', 'update']);
 
-        // DELETE
-        $this->middleware('permission:role.delete')
-            ->only(['destroy']);
-    }
+    //     // DELETE
+    //     $this->middleware('permission:role.delete')
+    //         ->only(['destroy']);
+    // }
     public function index()
     {
         $roles = Role::with('permissions')->get();

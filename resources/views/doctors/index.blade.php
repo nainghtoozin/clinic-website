@@ -1,9 +1,13 @@
 <x-auth-layout>
-    <x-page-header title="Doctors">
-        <x-slot:actions>
-            <a href="{{ route('doctors.create') }}" class="btn btn-primary">+ Add Doctor</a>
-        </x-slot:actions>
-    </x-page-header>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3">Doctors</h1>
+        @can('doctor.create')
+            <a href="{{ route('doctors.create') }}" class="btn btn-primary">
+                Add Doctor
+            </a>
+        @endcan
+    </div>
 
     <form method="GET" action="{{ route('doctors.index') }}">
         <div class="card shadow-sm border-0 mb-4">
@@ -48,13 +52,13 @@
                     {{-- Status --}}
                     <div class="col-md-2">
                         <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
+                        <select name="is_available" class="form-select">
                             <option value="">All</option>
-                            <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>
-                                Active
+                            <option value="1" {{ request('is_available') === '1' ? 'selected' : '' }}>
+                                Available
                             </option>
-                            <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>
-                                Inactive
+                            <option value="0" {{ request('is_available') === '0' ? 'selected' : '' }}>
+                                Unavailable
                             </option>
                         </select>
                     </div>
@@ -80,13 +84,6 @@
         </div>
     </form>
 
-
-    @if (session('success'))
-        <div class="alert alert-info">
-            {{ session('success') }}
-        </div>
-    @endif
-
     <table class="table table-hover bg-white shadow-sm">
         <thead>
             <tr>
@@ -109,15 +106,21 @@
                         </span>
                     </td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
-                            data-bs-target="#viewDoctor{{ $doctor->id }}">
-                            View
-                        </button>
-                        <a href="{{ route('doctors.edit', $doctor) }}" class="btn btn-sm btn-warning">Edit</a>
-                        <form method="POST" action="{{ route('doctors.destroy', $doctor) }}" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button onclick="return confirm('Delete?')" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
+                        @can('doctors.view')
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                data-bs-target="#viewDoctor{{ $doctor->id }}">
+                                View
+                            </button>
+                        @endcan
+                        @can('doctor.edit')
+                            <a href="{{ route('doctors.edit', $doctor) }}" class="btn btn-sm btn-warning">Edit</a>
+                        @endcan
+                        @can('doctor.delete')
+                            <form method="POST" action="{{ route('doctors.destroy', $doctor) }}" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button onclick="return confirm('Delete?')" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        @endcan
                     </td>
                 </tr>
 
