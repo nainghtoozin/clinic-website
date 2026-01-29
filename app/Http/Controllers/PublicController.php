@@ -9,9 +9,37 @@ use Illuminate\Http\Request;
 
 class PublicController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('index');
+        $departments = Department::orderBy('sort_order')->paginate(10);
+        $query = Doctor::with(['department', 'location']);
+
+        // 🔍 Name search
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        // 🏥 Department filter
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        // 📍 Location filter
+        if ($request->filled('location_id')) {
+            $query->where('location_id', $request->location_id);
+        }
+
+        // ✅ Status filter
+        if ($request->filled('is_available')) {
+            $query->where('is_available', $request->is_available);
+        }
+
+        $doctors = $query->latest()->paginate(10)->withQueryString();
+        return view('index', [
+            'doctors'     => $doctors,
+            'departments' => Department::orderBy('name')->get(),
+            'locations'   => Location::orderBy('name')->get(),
+        ]);
     }
     public function error()
     {
@@ -64,8 +92,8 @@ class PublicController extends Controller
         }
 
         // ✅ Status filter
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status);
+        if ($request->filled('is_available')) {
+            $query->where('is_available', $request->is_available);
         }
 
         $doctors = $query->latest()->paginate(10)->withQueryString();

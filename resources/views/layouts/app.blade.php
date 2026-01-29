@@ -46,7 +46,7 @@
             <a href="{{ route('public.index') }}" class="logo d-flex align-items-center me-auto me-xl-0">
                 <!-- Uncomment the line below if you also wish to use an image logo -->
                 <!-- <img src="assets/img/logo.webp" alt=""> -->
-                <h1 class="sitename">Chan<span>Myae</span></h1>
+                <h1 class="sitename">{{ setting('site.site_name') }}</h1>
             </a>
 
             <nav id="navmenu" class="navmenu">
@@ -109,12 +109,12 @@
             <div class="row gy-4">
                 <div class="col-lg-4 col-md-6 footer-about">
                     <a href="index.html" class="logo d-flex align-items-center">
-                        <span class="sitename">MediNest</span>
+                        <span class="sitename">{{ setting('site.site_name') }}</span>
                     </a>
                     <div class="footer-contact pt-3">
                         <p>A108 Adam Street</p>
                         <p>New York, NY 535022</p>
-                        <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
+                        <p class="mt-3"><strong>Phone:</strong> <span> {{ setting('site.phone') }} </span></p>
                         <p><strong>Email:</strong> <span>info@example.com</span></p>
                     </div>
                     <div class="social-links d-flex mt-4">
@@ -204,6 +204,7 @@
 
     <!-- Main JS File -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 </body>
 

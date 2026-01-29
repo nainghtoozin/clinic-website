@@ -61,12 +61,15 @@
             @can('location.view')
                 <a href="{{ route('locations.index') }}"><i class="bi bi-person-badge me-2"></i> Locations</a>
             @endcan
+            @can('service.view')
+                <a href="{{ route('services.index') }}"><i class="bi bi-person-badge me-2"></i> Services</a>
+            @endcan
             @can('appointment.view')
                 <a href="{{ route('appointments.index') }}"><i class="bi bi-calendar-check me-2"></i> Appointments</a>
             @endcan
             <a href="#"><i class="bi bi-people me-2"></i> Patients</a>
             <a href="#"><i class="bi bi-chat-left-text me-2"></i> Reviews</a>
-            <a href="#"><i class="bi bi-gear me-2"></i> Settings</a>
+            <a href="{{ route('settings.website.edit') }}"><i class="bi bi-gear me-2"></i> Settings</a>
         </aside>
 
         @if (session('success'))

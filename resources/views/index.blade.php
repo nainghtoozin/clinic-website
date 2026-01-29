@@ -266,30 +266,31 @@
 
                 <div class="departments-grid">
                     <div class="row">
-                        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                            <div class="department-card">
-                                <div class="card-icon">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
-                                <div class="card-content">
-                                    <h3 class="card-title">Cardiology</h3>
-                                    <p class="card-description">Nemo enim ipsam voluptatem quia voluptas sit
-                                        aspernatur aut odit aut fugit, sed quia consequuntur magni dolores.</p>
-                                    <div class="card-stats">
-                                        <div class="stat-item">
-                                            <span class="stat-number">15+</span>
-                                            <span class="stat-label">Specialists</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="stat-number">500+</span>
-                                            <span class="stat-label">Procedures</span>
+                        @foreach ($departments as $department)
+                            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                                <div class="department-card">
+                                    <div class="card-icon">
+                                        <i class="{{ $department->icon }}"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="card-title">{{ $department->name }}</h3>
+                                        <p class="card-description">{{ $department->description }}</p>
+                                        <div class="card-stats">
+                                            <div class="stat-item">
+                                                <span class="stat-number">15+</span>
+                                                <span class="stat-label">Specialists</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-number">500+</span>
+                                                <span class="stat-label">Procedures</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @endforeach
 
-                        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="350">
+                        {{-- <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="350">
                             <div class="department-card">
                                 <div class="card-icon">
                                     <i class="fas fa-brain"></i>
@@ -402,7 +403,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
 
@@ -411,7 +412,7 @@
                         <h3 class="cta-title">Explore All Our Medical Departments</h3>
                         <p class="cta-description">Et accusamus et iusto odio dignissimos ducimus qui blanditiis
                             praesentium voluptatum deleniti atque corrupti quos dolores.</p>
-                        <a href="#" class="btn btn-primary">View All Departments</a>
+                        <a href="{{ route('public.department') }}" class="btn btn-primary">View All Departments</a>
                     </div>
                 </div>
 
@@ -567,92 +568,62 @@
                             disciplines</p>
                     </div>
 
-                    <div class="advanced-search-container">
-                        <form class="search-form" action="forms/doctor-search.php" method="get">
-                            <div class="search-row">
-                                <div class="search-field">
-                                    <label>Practitioner Name</label>
-                                    <div class="input-group">
-                                        <i class="bi bi-search"></i>
-                                        <input type="text" class="form-control" name="doctor_name"
-                                            placeholder="Search by name...">
-                                    </div>
-                                </div>
-                                <div class="search-field">
-                                    <label>Medical Specialty</label>
-                                    <div class="select-group">
-                                        <i class="bi bi-plus-circle"></i>
-                                        <select class="form-select" name="specialty">
-                                            <option value="">Select specialty</option>
-                                            <option value="cardiology">Cardiovascular Medicine</option>
-                                            <option value="neurology">Neurological Sciences</option>
-                                            <option value="orthopedics">Orthopedic Surgery</option>
-                                            <option value="pediatrics">Pediatric Medicine</option>
-                                            <option value="dermatology">Dermatological Care</option>
-                                            <option value="oncology">Oncological Treatment</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="search-field">
-                                    <label>Location</label>
-                                    <div class="select-group">
-                                        <i class="bi bi-geo-alt"></i>
-                                        <select class="form-select" name="location">
-                                            <option value="">All locations</option>
-                                            <option value="downtown">Downtown Medical Center</option>
-                                            <option value="northside">Northside Clinic</option>
-                                            <option value="westend">West End Hospital</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button type="submit" class="search-submit">
-                                    <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+
                 </div>
             </div>
 
             <div class="specialists-showcase" data-aos="fade-up" data-aos-delay="300">
-                <div class="specialist-card featured" data-aos="slide-up" data-aos-delay="100">
-                    <div class="card-content">
-                        <div class="specialist-info">
-                            <div class="profile-section">
-                                <div class="profile-image">
-                                    <img src="assets/img/health/staff-1.webp" alt="Dr. Jennifer Morgan"
-                                        class="img-fluid">
-                                    <div class="online-status active"></div>
-                                </div>
-                                <div class="specialist-data">
-                                    <h3>Dr. Jennifer Morgan</h3>
-                                    <p class="specialty">Senior Cardiologist</p>
-                                    <div class="credentials">
-                                        <span class="badge">MD, FACC</span>
-                                        <span class="experience">18 years</span>
+                @foreach ($doctors as $doctor)
+                    <div class="specialist-card featured" data-aos="slide-up" data-aos-delay="100">
+                        <div class="card-content">
+                            <div class="specialist-info">
+                                <div class="profile-section">
+                                    <div class="profile-image">
+                                        <img src="{{ $doctor->profile_image ? asset('storage/' . $doctor->profile_image) : 'https://ui-avatars.com/api/?name=' . urlencode($doctor->name) }}"
+                                            class="img-fluid" alt="{{ $doctor->name }}" loading="lazy">
+                                        @if ($doctor->is_available === true)
+                                            <div class="online-status active"></div>
+                                        @endif
+
+                                    </div>
+                                    <div class="specialist-data">
+                                        <h3>{{ $doctor->name }}</h3>
+                                        <p class="specialty">{{ $doctor->qualifications }}</p>
+                                        <div class="credentials">
+                                            <span
+                                                class="badge">{{ $doctor->board_certified ? 'Board Certified' : 'Not Board Certified' }}</span>
+                                            <span class="experience">{{ $doctor->experience_years }} years</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="rating-info">
-                                <div class="stars-display">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
+                                <div class="rating-info">
+                                    <div class="stars-display">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+                                    <span class="score">4.9</span>
+                                    <small>(142 patients)</small>
                                 </div>
-                                <span class="score">4.9</span>
-                                <small>(142 patients)</small>
                             </div>
-                        </div>
-                        <div class="quick-actions">
-                            <a href="#" class="action-btn outline">Profile</a>
-                            <a href="#" class="action-btn primary">Consult</a>
+                            <div class="quick-actions">
+                                <button type="button" class="action-btn primary" data-bs-toggle="modal"
+                                    data-bs-target="#viewDoctor{{ $doctor->id }}">
+                                    View Profile
+                                </button>
+                                <a href="#" class="action-btn primary" x-data
+                                    @click.prevent="alert('ဒီလုပ်ဆောင်ချက်မရရှိသေးပါဘူး ခင်ဗျာ။')">
+                                    Consult
+                                </a>
+
+                            </div>
                         </div>
                     </div>
-                </div>
+                @endforeach
 
-                <div class="specialist-card" data-aos="slide-up" data-aos-delay="200">
+                {{-- <div class="specialist-card" data-aos="slide-up" data-aos-delay="200">
                     <div class="card-content">
                         <div class="specialist-info">
                             <div class="profile-section">
@@ -834,13 +805,17 @@
                             <a href="#" class="action-btn primary">Appointment</a>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
             </div>
 
+            @foreach ($doctors as $doctor)
+                @include('doctor-details', ['doctor' => $doctor])
+            @endforeach
+
             <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="700">
-                <a href="specialists.html" class="view-all-link">
-                    Browse Complete Directory
+                <a href="{{ route('public.doctor-list') }}" class="view-all-link">
+                    View All Doctors
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </div>

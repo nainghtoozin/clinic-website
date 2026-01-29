@@ -108,14 +108,14 @@
                                         {{-- Status --}}
                                         <div class="col-md-2">
                                             <label class="form-label">Status</label>
-                                            <select name="status" class="form-select">
+                                            <select name="is_available" class="form-select">
                                                 <option value="">All</option>
                                                 <option value="1"
-                                                    {{ request('status') === '1' ? 'selected' : '' }}>
+                                                    {{ request('is_available') === '1' ? 'selected' : '' }}>
                                                     Active
                                                 </option>
                                                 <option value="0"
-                                                    {{ request('status') === '0' ? 'selected' : '' }}>
+                                                    {{ request('is_available') === '0' ? 'selected' : '' }}>
                                                     Inactive
                                                 </option>
                                             </select>
@@ -147,12 +147,17 @@
 
                 <div class="isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
                     <ul class="directory-filters isotope-filters" data-aos="fade-up" data-aos-delay="200">
+
                         <li data-filter="*" class="filter-active">All</li>
-                        <li data-filter=".filter-cardiology">Cardiology</li>
-                        <li data-filter=".filter-pediatrics">Pediatrics</li>
-                        <li data-filter=".filter-dermatology">Dermatology</li>
-                        <li data-filter=".filter-orthopedics">Orthopedics</li>
-                    </ul><!-- End Directory Filters -->
+
+                        @foreach ($departments as $department)
+                            <li data-filter=".filter-{{ Str::slug($department->name) }}">
+                                {{ $department->name }}
+                            </li>
+                        @endforeach
+
+                    </ul>
+
 
                     <div class="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="300">
 
@@ -162,6 +167,11 @@
                                     <figure class="doctor-media">
                                         <img src="{{ $doctor->profile_image ? asset('storage/' . $doctor->profile_image) : 'https://ui-avatars.com/api/?name=' . urlencode($doctor->name) }}"
                                             class="img-fluid" alt="{{ $doctor->name }}" loading="lazy">
+                                        @if ($doctor->is_available === true)
+                                            <div class="badge bg-success">Active</div>
+                                        @else
+                                            <div class="badge bg-danger">Inactive</div>
+                                        @endif
                                         <span class="tag"> {{ $doctor->specialty }} </span>
                                     </figure>
                                     <div class="doctor-content">

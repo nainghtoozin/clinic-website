@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class PermissionSeeder extends Seeder
 {
@@ -51,6 +52,12 @@ class PermissionSeeder extends Seeder
             'department.edit',
             'department.delete',
 
+            //Service
+            'service.view',
+            'service.create',
+            'service.edit',
+            'service.delete',
+
             //Location
             'location.view',
             'location.create',
@@ -64,5 +71,12 @@ class PermissionSeeder extends Seeder
                 'guard_name' => 'web',
             ]);
         }
+
+        $role = Role::firstOrCreate([
+            'name' => 'super-admin',
+            'guard_name' => 'web'
+        ]);
+
+        $role->syncPermissions(Permission::all());
     }
 }
