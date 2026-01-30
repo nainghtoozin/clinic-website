@@ -1,64 +1,59 @@
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
-
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
-
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
-
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
-        @csrf
-        @method('patch')
-
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+<form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+    @csrf
+    @method('patch')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
+    @endif
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
-
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
+    @if (session('status'))
+        <div class="alert alert-success">
+            {{ session('status') }}
         </div>
+    @endif
+    <div class="mb-3">
+        <img src="{{ Storage::url($user->avatar) }}" alt="no profile image" class="rounded-circle mb-3" width="100"
+            height="100">
+        <label class="form-label">Avatar</label>
+        <input type="file" name="avatar" class="form-control">
+    </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="form-control">
+    </div>
 
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
-            @endif
-        </div>
-    </form>
-</section>
+    <div class="mb-3">
+        <label class="form-label">UserName</label>
+        <input type="text" name="username" value="{{ old('username', $user->username) }}" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Bio</label>
+        <textarea name="bio" class="form-control" rows="3">{{ old('bio', $user->bio) }}</textarea>
+    </div>
+
+    {{-- <div class="mb-3">
+        <label class="form-label">IS Active</label>
+        <input type="checkbox" name="status" {{ old('is_active', $user->is_active) ? 'checked' : '' }}
+            class="form-check-input">
+    </div> --}}
+
+    <button class="btn btn-primary">
+        Save Changes
+    </button>
+
+    @if (session('status') === 'profile-updated')
+        <span class="text-success ms-3">Saved.</span>
+    @endif
+</form>

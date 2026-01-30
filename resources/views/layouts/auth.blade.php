@@ -45,31 +45,51 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <h5 class="text-white text-center py-4 mb-0">Clinic Admin</h5>
-            <a href="{{ route('dashboard') }}" class="active"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
             @can('doctors.view')
-                <a href="{{ route('doctors.index') }}"><i class="bi bi-person-badge me-2"></i> Doctors</a>
+                <a href="{{ route('doctors.index') }}" class="{{ request()->routeIs('doctors.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-badge me-2"></i> Doctors
+                </a>
             @endcan
             @can('user.view')
-                <a href="{{ route('users.index') }}"><i class="bi bi-person-badge me-2"></i> Users</a>
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
+                    <i class="bi bi-people me-2"></i> Users
+                </a>
             @endcan
             @can('role.view')
-                <a href="{{ route('roles.index') }}"><i class="bi bi-person-badge me-2"></i> Roles</a>
+                <a href="{{ route('roles.index') }}" class="{{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock me-2"></i> Roles
+                </a>
             @endcan
             @can('department.view')
-                <a href="{{ route('departments.index') }}"><i class="bi bi-person-badge me-2"></i> Departments</a>
+                <a href="{{ route('departments.index') }}"
+                    class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">
+                    <i class="bi bi-diagram-3 me-2"></i> Departments
+                </a>
             @endcan
             @can('location.view')
-                <a href="{{ route('locations.index') }}"><i class="bi bi-person-badge me-2"></i> Locations</a>
+                <a href="{{ route('locations.index') }}" class="{{ request()->routeIs('locations.*') ? 'active' : '' }}">
+                    <i class="bi bi-geo-alt me-2"></i> Locations
+                </a>
             @endcan
             @can('service.view')
-                <a href="{{ route('services.index') }}"><i class="bi bi-person-badge me-2"></i> Services</a>
+                <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.*') ? 'active' : '' }}">
+                    <i class="bi bi-heart-pulse me-2"></i> Services
+                </a>
             @endcan
             @can('appointment.view')
-                <a href="{{ route('appointments.index') }}"><i class="bi bi-calendar-check me-2"></i> Appointments</a>
+                <a href="{{ route('appointments.index') }}"
+                    class="{{ request()->routeIs('appointments.*') ? 'active' : '' }}">
+                    <i class="bi bi-calendar-check me-2"></i> Appointments
+                </a>
             @endcan
-            <a href="#"><i class="bi bi-people me-2"></i> Patients</a>
-            <a href="#"><i class="bi bi-chat-left-text me-2"></i> Reviews</a>
-            <a href="{{ route('settings.website.edit') }}"><i class="bi bi-gear me-2"></i> Settings</a>
+            <a href="#"><i class="bi bi-person-lines-fill me-2"></i> Patients</a>
+            <a href="#"><i class="bi bi-chat-square-text me-2"></i> Reviews</a>
+            <a href="{{ route('settings.website.edit') }}"
+                class="{{ request()->routeIs('settings.website.edit') ? 'active' : '' }}"><i
+                    class="bi bi-gear me-2"></i> Settings</a>
         </aside>
 
         @if (session('success'))
