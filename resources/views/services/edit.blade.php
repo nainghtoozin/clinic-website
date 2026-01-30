@@ -52,8 +52,7 @@
                         <input type="file" name="service_image" class="form-control">
 
                         @isset($service->service_image)
-                            <img src="{{ asset('storage/' . $service->service_image) }}" class="mt-2 rounded"
-                                width="120">
+                            <img src="{{ $service->imageUrl() }}" class="mt-2 rounded" width="120">
                         @endisset
                     </div>
 

@@ -34,34 +34,45 @@
             <div class="services-grid">
                 <div class="row g-4">
 
-                    <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="200">
-                        <div class="service-card primary-care">
-                            <div class="service-header">
-                                <div class="service-icon">
-                                    <i class="fas fa-heartbeat"></i>
+                    @foreach ($services as $service)
+                        <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="200">
+                            <div class="service-card primary-care">
+                                <div class="service-header">
+                                    <div class="service-icon">
+                                        <i class="{{ $service->icon }}"></i>
+                                    </div>
+                                    <span class="service-category">{{ $service->category }}</span>
                                 </div>
-                                <span class="service-category">Primary Care</span>
-                            </div>
-                            <div class="service-body">
-                                <h4>General Consultation</h4>
-                                <p>Comprehensive health assessments and preventive care planning for all family members.
-                                </p>
-                                <div class="service-features">
-                                    <span class="feature-badge">Health Monitoring</span>
-                                    <span class="feature-badge">Wellness Programs</span>
-                                    <span class="feature-badge">Preventive Care</span>
+                                <div class="service-body">
+                                    <h4>{{ $service->name }}</h4>
+                                    @if ($service->price)
+                                        <p class="badge bg-success"><strong>Price: ${{ $service->price }}</strong></p>
+                                    @else
+                                        <p class="badge bg-danger"><strong>Price: $ ---</strong></p>
+                                    @endif
+                                    <p>
+                                        {{ $service->description }}
+                                    </p>
+                                    <div class="service-features">
+                                        @foreach ($service->features as $feature)
+                                            <span class="feature-badge">{{ $feature }}</span>
+                                        @endforeach
+                                        {{-- <span class="feature-badge">Health Monitoring</span>
+                                        <span class="feature-badge">Wellness Programs</span>
+                                        <span class="feature-badge">Preventive Care</span> --}}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="service-footer">
-                                <a href="service-details.html" class="service-btn">
-                                    Schedule Visit
-                                    <i class="fas fa-arrow-right"></i>
-                                </a>
+                                <div class="service-footer">
+                                    <a href="{{ route('public.service_details', $service->slug) }}" class="service-btn">
+                                        Service Details
+                                        <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endforeach
 
-                    <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="300">
+                    {{-- <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="300">
                         <div class="service-card specialty-care featured">
                             <div class="service-header">
                                 <div class="service-icon">
@@ -197,7 +208,7 @@
                                 </a>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                 </div>
             </div>

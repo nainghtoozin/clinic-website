@@ -60,7 +60,7 @@
                                 class="bi bi-chevron-down toggle-dropdown"></i></a>
                         <ul>
                             <li><a href="{{ route('public.department_details') }}">Department Details</a></li>
-                            <li><a href="{{ route('public.service_details') }}">Service Details</a></li>
+                            {{-- <li><a href="{{ route('public.service_details') }}">Service Details</a></li> --}}
                             <li><a href="{{ route('appointments.create') }}">Appointment</a></li>
                             <li><a href="{{ route('public.testimonial') }}">Testimonials</a></li>
                             <li><a href="{{ route('public.faq') }}">Frequently Asked Questions</a></li>

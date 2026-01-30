@@ -27,7 +27,7 @@ Route::prefix('/')->group(function () {
     Route::get('/gallery', [PublicController::class, 'gallery'])->name('public.gallery');
     Route::get('/gallery_details', [PublicController::class, 'gallery_details'])->name('public.gallery_details');
     Route::get('/privacy', [PublicController::class, 'privacy'])->name('public.privacy');
-    Route::get('/service_details', [PublicController::class, 'service_details'])->name('public.service_details');
+    Route::get('/service_details/{service:slug}', [PublicController::class, 'service_details'])->name('public.service_details');
     Route::get('/service', [PublicController::class, 'services'])->name('public.services');
     Route::get('/starter_page', [PublicController::class, 'starter_page'])->name('public.starter_page');
     Route::get('/terms', [PublicController::class, 'terms'])->name('public.terms');

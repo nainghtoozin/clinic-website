@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Doctor;
 use App\Models\Department;
 use App\Models\Location;
+use App\Models\Service;
 use Illuminate\Http\Request;
 
 class PublicController extends Controller
@@ -124,14 +125,15 @@ class PublicController extends Controller
         return view('privacy');
     }
 
-    public function service_details()
+    public function service_details(Service $service)
     {
-        return view('service-details');
+        return view('service-details', compact('service'));
     }
 
     public function services()
     {
-        return view('services');
+        $services = Service::get();
+        return view('services', compact('services'));
     }
 
     public function starter_page()

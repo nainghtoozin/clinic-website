@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Doctor;
 use App\Models\Location;
 use App\Models\User;
+use App\Models\Service;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -28,6 +29,10 @@ class DatabaseSeeder extends Seeder
         Location::factory()->count(5)->create();
         // Doctors (30)
         Doctor::factory()->count(30)->create();
+
+        // Service::factory()->count(6)->create();
+
+        $this->call(ServiceSeeder::class);
 
         $this->call([
             PermissionSeeder::class,

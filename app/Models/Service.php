@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Service extends Model
 {
     protected $fillable = [
+        'service_image',
         'user_id',
         'title',
         'slug',
@@ -22,4 +23,11 @@ class Service extends Model
         'features' => 'array',
         'status' => 'boolean',
     ];
+
+    public function imageUrl()
+    {
+        return $this->service_image
+            ? asset('storage/' . $this->service_image)
+            : asset('images/service-default.png');
+    }
 }
