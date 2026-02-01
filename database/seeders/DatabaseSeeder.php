@@ -18,24 +18,25 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
+
     public function run(): void
     {
-        // Ensure at least one user exists
-        User::factory()->count(3)->create();
+        // Roles & Permissions
+        $this->call(PermissionSeeder::class);
 
-        // Departments (5)
+        // Users
+        $users = User::factory()->count(3)->create();
+
+        $superAdminRole = Role::where('name', 'super-admin')->first();
+
+        // ပထမ user ကို super-admin ပေးမယ်
+        $users->first()->assignRole($superAdminRole);
+
+        // Other seeders
         Department::factory()->count(5)->create();
-        // Locations (5)
         Location::factory()->count(5)->create();
-        // Doctors (30)
         Doctor::factory()->count(30)->create();
 
-        // Service::factory()->count(6)->create();
-
         $this->call(ServiceSeeder::class);
-
-        $this->call([
-            PermissionSeeder::class,
-        ]);
     }
 }

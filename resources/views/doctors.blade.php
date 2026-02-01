@@ -181,9 +181,49 @@
                                         <div class="doctor-meta">
                                             <span class="badge dept"> {{ $doctor->department->name }} </span>
                                         </div>
-                                        <div class="doctor-actions">
-                                            <a href="{{ route('appointments.create', ['doctor' => $doctor->id]) }}"
-                                                class="btn btn-sm btn-appointment">Book Appointment</a>
+                                        {{-- ✅ ADD THIS BLOCK --}}
+                                        <div class="doctor-schedule mt-3 p-3 rounded bg-light border">
+
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-calendar-week text-primary me-2"></i>
+                                                <strong class="small">Availability</strong>
+                                            </div>
+
+                                            {{-- Days --}}
+                                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                                @foreach ($doctor->dayLabels() as $day)
+                                                    <span class="badge bg-white text-primary border">
+                                                        {{ $day }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+
+                                            {{-- Time --}}
+                                            <div class="small text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ \Carbon\Carbon::parse($doctor->start_time)->format('g:i A') }}
+                                                –
+                                                {{ \Carbon\Carbon::parse($doctor->end_time)->format('g:i A') }}
+                                            </div>
+
+                                        </div>
+                                        {{-- ✅ END --}}
+                                        <div class="doctor-actions mt-2">
+
+                                            {{-- <a href="{{ route('appointments.create', ['doctor' => $doctor->id]) }}"
+                                                class="btn btn-sm btn-appointment">Book Appointment</a> --}}
+
+                                            @if ($doctor->is_available)
+                                                <a href="{{ route('appointments.create', ['doctor' => $doctor->id]) }}"
+                                                    class="btn btn-sm btn-appointment">
+                                                    Book Appointment
+                                                </a>
+                                            @else
+                                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                    Not Available
+                                                </button>
+                                            @endif
+
                                             <button type="button" class="btn btn-sm btn-soft" data-bs-toggle="modal"
                                                 data-bs-target="#viewDoctor{{ $doctor->id }}">
                                                 View Profile

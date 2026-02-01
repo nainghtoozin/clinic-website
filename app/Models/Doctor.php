@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DayOfWeek;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,15 +27,26 @@ class Doctor extends Model
         'department_id',
         'is_available',
         'availability_note',
+        'available_days',
+        'start_time',
+        'end_time',
         'is_featured',
         'user_id',
     ];
 
     protected $casts = [
+        'available_days' => 'array',
         'is_available' => 'boolean',
         'board_certified' => 'boolean',
         'is_featured' => 'boolean',
     ];
+
+    public function dayLabels(): array
+    {
+        return collect($this->available_days)
+            ->map(fn($d) => DayOfWeek::from($d)->label())
+            ->toArray();
+    }
 
     public function department()
     {

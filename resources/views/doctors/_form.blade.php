@@ -146,6 +146,65 @@
         </div>
     </div>
 
+    <hr class="my-4">
+
+    <div class="card border-primary shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">
+                <i class="bi bi-calendar-week me-2"></i>
+                Doctor Availability Schedule
+            </h6>
+        </div>
+
+        <div class="card-body">
+
+            {{-- Available Days --}}
+            <div class="mb-4">
+                <label class="form-label fw-semibold">
+                    Available Days <span class="text-danger">*</span>
+                </label>
+
+                <div class="d-flex flex-wrap gap-3">
+                    @foreach ($days as $value => $label)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="days[]"
+                                id="day_{{ $value }}" value="{{ $value }}"
+                                @checked(in_array($value, old('days', $doctor->available_days ?? [])))>
+                            <label class="form-check-label" for="day_{{ $value }}">
+                                {{ $label }}
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Time --}}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Start Time <span class="text-danger">*</span>
+                    </label>
+                    <input type="time" name="start_time" class="form-control"
+                        value="{{ old('start_time', $doctor->start_time ?? '') }}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        End Time <span class="text-danger">*</span>
+                    </label>
+                    <input type="time" name="end_time" class="form-control"
+                        value="{{ old('end_time', $doctor->end_time ?? '') }}" required>
+                </div>
+            </div>
+
+            <small class="text-muted d-block mt-3">
+                <i class="bi bi-info-circle me-1"></i>
+                This schedule will be shown publicly on the doctor profile.
+            </small>
+        </div>
+    </div>
+
+
     <div class="card-footer bg-white text-end">
         <a href="{{ route('doctors.index') }}" class="btn btn-light">Cancel</a>
         <button class="btn btn-primary">

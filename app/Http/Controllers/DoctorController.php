@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DayOfWeek;
 use App\Models\Doctor;
 use App\Models\Department;
 use App\Models\Location;
@@ -48,7 +49,8 @@ class DoctorController extends Controller
     public function create()
     {
         $departments = Department::all();
-        return view('doctors.create', compact('departments'));
+        $days = DayOfWeek::options();
+        return view('doctors.create', compact('departments', 'days'));
     }
 
     public function store(Request $request)
@@ -58,6 +60,8 @@ class DoctorController extends Controller
             'gender'            => 'nullable|in:male,female,other',
             'profile_image'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'department_id'     => 'nullable|exists:departments,id',
+            'days'           => 'required|array|min:1',
+            'days.*'         => 'integer|in:' . implode(',', array_keys(DayOfWeek::options())),
         ]);
 
         // 👉 Image Upload
@@ -89,6 +93,10 @@ class DoctorController extends Controller
             'availability_note'  => $request->availability_note,
             'is_featured'         => $request->is_featured ?? false,
 
+            'available_days' => $request->days,
+            'start_time'     => $request->start_time,
+            'end_time'       => $request->end_time,
+
             'user_id'             => auth()->id(),
         ]);
 
@@ -99,7 +107,8 @@ class DoctorController extends Controller
     public function edit(Doctor $doctor)
     {
         $departments = Department::all();
-        return view('doctors.edit', compact('doctor', 'departments'));
+        $days = DayOfWeek::options();
+        return view('doctors.edit', compact('doctor', 'departments', 'days'));
     }
 
     public function update(Request $request, Doctor $doctor)
@@ -108,6 +117,8 @@ class DoctorController extends Controller
             'name'          => 'required|string|max:255',
             'gender'        => 'nullable|in:male,female,other',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'days'           => 'required|array|min:1',
+            'days.*'         => 'integer|in:' . implode(',', array_keys(DayOfWeek::options())),
         ]);
 
         // 👉 Image Replace
@@ -142,6 +153,10 @@ class DoctorController extends Controller
             'is_available'        => $request->is_available ?? false,
             'availability_note'  => $request->availability_note,
             'is_featured'         => $request->is_featured ?? false,
+
+            'available_days' => $request->days,
+            'start_time'     => $request->start_time,
+            'end_time'       => $request->end_time,
         ]);
 
         return redirect()->route('doctors.index')

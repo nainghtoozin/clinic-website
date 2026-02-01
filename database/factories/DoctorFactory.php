@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\DayOfWeek;
 use App\Models\Doctor;
 use App\Models\Department;
 use App\Models\Location;
@@ -58,6 +59,10 @@ class DoctorFactory extends Factory
             'is_available' => $this->faker->boolean(80),
             'availability_note' => $this->faker->optional()->sentence(),
             'is_featured' => $this->faker->boolean(20),
+
+            'available_days' => $this->faker->randomElements(array_keys(DayOfWeek::options()), 2),
+            'start_time' => $this->faker->time(),
+            'end_time' => $this->faker->time(),
 
             // User
             'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),

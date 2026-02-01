@@ -37,6 +37,11 @@ return new class extends Migration {
             $table->string('availability_note')->nullable();
             $table->boolean('is_featured')->default(false);
 
+            // ✅ Schedule
+            $table->json('available_days')->nullable();   // [1,3,5]
+            $table->time('start_time')->default('00:00:00');
+            $table->time('end_time')->default('00:00:00');
+
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('location_id')->nullable()->constrained()->cascadeOnDelete();
 

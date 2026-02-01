@@ -98,6 +98,9 @@ class PublicController extends Controller
         }
 
         $doctors = $query->latest()->paginate(10)->withQueryString();
+        if ($request->ajax()) {
+            return response()->json($doctors);
+        }
         return view('doctors', [
             'doctors'     => $doctors,
             'departments' => Department::orderBy('name')->get(),

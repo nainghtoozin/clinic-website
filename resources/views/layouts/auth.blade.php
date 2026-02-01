@@ -48,7 +48,7 @@
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
-            @can('doctors.view')
+            @can('doctor.view')
                 <a href="{{ route('doctors.index') }}" class="{{ request()->routeIs('doctors.*') ? 'active' : '' }}">
                     <i class="bi bi-person-badge me-2"></i> Doctors
                 </a>
