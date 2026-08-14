@@ -19,7 +19,7 @@
         <nav class="breadcrumbs">
             <div class="container">
                 <ol>
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="{{ route('public.index') }}">Home</a></li>
                     <li class="current">Doctors</li>
                 </ol>
             </div>
@@ -214,7 +214,7 @@
                                                 class="btn btn-sm btn-appointment">Book Appointment</a> --}}
 
                                             @if ($doctor->is_available)
-                                                <a href="{{ route('appointments.create', ['doctor' => $doctor->id]) }}"
+                                                <a href="{{ route('public.appointment.create') }}"
                                                     class="btn btn-sm btn-appointment">
                                                     Book Appointment
                                                 </a>

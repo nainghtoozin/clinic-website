@@ -47,7 +47,7 @@
                                 </td>
                                 <td>{{ $department->sort_order }}</td>
                                 <td>
-                                    @can('dapartment.edit')
+                                    @can('department.edit')
                                         <a href="{{ route('departments.edit', $department) }}"
                                             class="btn btn-sm btn-outline-primary">Edit</a>
                                     @endcan

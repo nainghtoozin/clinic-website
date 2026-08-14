@@ -16,44 +16,40 @@
             {{ session('status') }}
         </div>
     @endif
+
     <div class="mb-3">
-        <img src="{{ Storage::url($user->avatar) }}" alt="no profile image" class="rounded-circle mb-3" width="100"
-            height="100">
-        <label class="form-label">Avatar</label>
-        <input type="file" name="avatar" class="form-control">
+        <label class="form-label">{{ __('app.settings.profile_photo') }}</label>
+        <div class="d-flex align-items-center gap-3">
+            <img src="{{ $user->avatar ? Storage::url($user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}"
+                alt="{{ $user->name }}" class="rounded-circle" width="100" height="100" style="object-fit:cover">
+            <input type="file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp"
+                class="form-control @error('avatar') is-invalid @enderror">
+        </div>
+        @error('avatar')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Name</label>
+        <label class="form-label">{{ __('app.settings.name') }}</label>
         <input type="text" name="name" value="{{ old('name', $user->name) }}" class="form-control">
     </div>
 
     <div class="mb-3">
-        <label class="form-label">UserName</label>
-        <input type="text" name="username" value="{{ old('username', $user->username) }}" class="form-control">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Email</label>
+        <label class="form-label">{{ __('app.settings.email') }}</label>
         <input type="email" name="email" value="{{ old('email', $user->email) }}" class="form-control">
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Bio</label>
-        <textarea name="bio" class="form-control" rows="3">{{ old('bio', $user->bio) }}</textarea>
+        <label class="form-label">{{ __('app.settings.phone') }}</label>
+        <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-control">
     </div>
 
-    {{-- <div class="mb-3">
-        <label class="form-label">IS Active</label>
-        <input type="checkbox" name="status" {{ old('is_active', $user->is_active) ? 'checked' : '' }}
-            class="form-check-input">
-    </div> --}}
-
     <button class="btn btn-primary">
-        Save Changes
+        {{ __('app.settings.save_changes') }}
     </button>
 
     @if (session('status') === 'profile-updated')
-        <span class="text-success ms-3">Saved.</span>
+        <span class="text-success ms-3">{{ __('app.settings.profile_updated') }}</span>
     @endif
 </form>

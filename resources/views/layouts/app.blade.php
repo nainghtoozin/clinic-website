@@ -56,45 +56,13 @@
                     <li><a href="{{ route('public.department') }}">Departments</a></li>
                     <li><a href="{{ route('public.services') }}">Services</a></li>
                     <li><a href="{{ route('public.doctor-list') }}">Doctors</a></li>
-                    <li class="dropdown"><a href="#"><span>More Pages</span> <i
-                                class="bi bi-chevron-down toggle-dropdown"></i></a>
-                        <ul>
-                            <li><a href="{{ route('public.department_details') }}">Department Details</a></li>
-                            {{-- <li><a href="{{ route('public.service_details') }}">Service Details</a></li> --}}
-                            <li><a href="{{ route('appointments.create') }}">Appointment</a></li>
-                            <li><a href="{{ route('public.testimonial') }}">Testimonials</a></li>
-                            <li><a href="{{ route('public.faq') }}">Frequently Asked Questions</a></li>
-                            <li><a href="{{ route('public.gallery') }}">Gallery</a></li>
-                            <li><a href="{{ route('public.terms') }}">Terms</a></li>
-                            <li><a href="{{ route('public.privacy') }}">Privacy</a></li>
-                            <li><a href="{{ route('public.error') }}">404</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown"><a href="#"><span>Dropdown</span> <i
-                                class="bi bi-chevron-down toggle-dropdown"></i></a>
-                        <ul>
-                            <li><a href="#">Dropdown 1</a></li>
-                            <li class="dropdown"><a href="#"><span>Deep Dropdown</span> <i
-                                        class="bi bi-chevron-down toggle-dropdown"></i></a>
-                                <ul>
-                                    <li><a href="#">Deep Dropdown 1</a></li>
-                                    <li><a href="#">Deep Dropdown 2</a></li>
-                                    <li><a href="#">Deep Dropdown 3</a></li>
-                                    <li><a href="#">Deep Dropdown 4</a></li>
-                                    <li><a href="#">Deep Dropdown 5</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Dropdown 2</a></li>
-                            <li><a href="#">Dropdown 3</a></li>
-                            <li><a href="#">Dropdown 4</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="{{ route('public.faq') }}">FAQ</a></li>
+                    <li><a href="{{ route('public.contact') }}">Contact</a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
-            <a class="btn-getstarted" href="{{ route('appointments.create') }}">Apointment</a>
+            <a class="btn-getstarted" href="{{ route('public.appointment.create') }}">Appointment</a>
 
         </div>
     </header>
@@ -108,64 +76,52 @@
         <div class="container footer-top">
             <div class="row gy-4">
                 <div class="col-lg-4 col-md-6 footer-about">
-                    <a href="index.html" class="logo d-flex align-items-center">
+                    <a href="{{ route('public.index') }}" class="logo d-flex align-items-center">
                         <span class="sitename">{{ setting('site.site_name') }}</span>
                     </a>
                     <div class="footer-contact pt-3">
-                        <p>A108 Adam Street</p>
-                        <p>New York, NY 535022</p>
-                        <p class="mt-3"><strong>Phone:</strong> <span> {{ setting('site.phone') }} </span></p>
-                        <p><strong>Email:</strong> <span>info@example.com</span></p>
+                        <p>{{ setting('site.address') ?: 'Clinic Address' }}</p>
+                        <p class="mt-3"><strong>Phone:</strong> <span>{{ setting('site.phone') ?: 'Clinic Phone' }}</span></p>
+                        <p><strong>Email:</strong> <span>{{ setting('site.email') ?: 'info@clinic.com' }}</span></p>
                     </div>
                     <div class="social-links d-flex mt-4">
-                        <a href=""><i class="bi bi-twitter-x"></i></a>
-                        <a href=""><i class="bi bi-facebook"></i></a>
-                        <a href=""><i class="bi bi-instagram"></i></a>
-                        <a href=""><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
                     </div>
                 </div>
 
                 <div class="col-lg-2 col-md-3 footer-links">
                     <h4>Useful Links</h4>
                     <ul>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">About us</a></li>
-                        <li><a href="#">Services</a></li>
-                        <li><a href="#">Terms of service</a></li>
-                        <li><a href="#">Privacy policy</a></li>
+                        <li><a href="{{ route('public.index') }}">Home</a></li>
+                        <li><a href="{{ route('public.about') }}">About us</a></li>
+                        <li><a href="{{ route('public.services') }}">Services</a></li>
+                        <li><a href="{{ route('public.terms') }}">Terms of service</a></li>
+                        <li><a href="{{ route('public.privacy') }}">Privacy policy</a></li>
                     </ul>
                 </div>
 
                 <div class="col-lg-2 col-md-3 footer-links">
                     <h4>Our Services</h4>
                     <ul>
-                        <li><a href="#">Web Design</a></li>
-                        <li><a href="#">Web Development</a></li>
-                        <li><a href="#">Product Management</a></li>
-                        <li><a href="#">Marketing</a></li>
-                        <li><a href="#">Graphic Design</a></li>
+                        <li><a href="{{ route('public.services') }}">General Consultation</a></li>
+                        <li><a href="{{ route('public.services') }}">Specialist Care</a></li>
+                        <li><a href="{{ route('public.services') }}">Diagnostics</a></li>
+                        <li><a href="{{ route('public.services') }}">Pharmacy</a></li>
+                        <li><a href="{{ route('public.services') }}">Health Checkup</a></li>
                     </ul>
                 </div>
 
                 <div class="col-lg-2 col-md-3 footer-links">
-                    <h4>Hic solutasetp</h4>
+                    <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="#">Molestiae accusamus iure</a></li>
-                        <li><a href="#">Excepturi dignissimos</a></li>
-                        <li><a href="#">Suscipit distinctio</a></li>
-                        <li><a href="#">Dilecta</a></li>
-                        <li><a href="#">Sit quas consectetur</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-2 col-md-3 footer-links">
-                    <h4>Nobis illum</h4>
-                    <ul>
-                        <li><a href="#">Ipsam</a></li>
-                        <li><a href="#">Laudantium dolorum</a></li>
-                        <li><a href="#">Dinera</a></li>
-                        <li><a href="#">Trodelas</a></li>
-                        <li><a href="#">Flexo</a></li>
+                        <li><a href="{{ route('public.doctor-list') }}">Our Doctors</a></li>
+                        <li><a href="{{ route('public.department') }}">Departments</a></li>
+                        <li><a href="{{ route('public.appointment.create') }}">Book Appointment</a></li>
+                        <li><a href="{{ route('public.faq') }}">FAQ</a></li>
+                        <li><a href="{{ route('public.contact') }}">Contact</a></li>
                     </ul>
                 </div>
 
@@ -173,14 +129,8 @@
         </div>
 
         <div class="container copyright text-center mt-4">
-            <p>© <span>Copyright</span> <strong>MediNest</strong>&nbsp;<span>All Rights Reserved</span></p>
-            <div class="credits">
-                <!-- All the links in the footer should remain intact. -->
-                <!-- You can delete the links only if you've purchased the pro version. -->
-                <!-- Licensing information: https://bootstrapmade.com/license/ -->
-                <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
-                Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
-            </div>
+            <p>&copy; {{ date('Y') }} <strong>{{ setting('site.site_name') ?: config('app.name') }}</strong>. All Rights Reserved.</p>
+        </div>
         </div>
 
     </footer>

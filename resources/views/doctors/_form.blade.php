@@ -70,6 +70,13 @@
             </div>
 
             <div class="col-md-3">
+                <label class="form-label">Consultation Fee</label>
+                <input type="number" min="0" step="0.01" name="consultation_fee"
+                    value="{{ old('consultation_fee', $doctor->consultation_fee ?? '') }}" class="form-control"
+                    placeholder="0.00">
+            </div>
+
+            <div class="col-md-3">
                 <label class="form-label">Board Certified</label>
                 <select name="board_certified" class="form-select">
                     <option value="0" @selected(old('board_certified', $doctor->board_certified ?? 0) == 0)>No</option>

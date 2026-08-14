@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -11,23 +12,33 @@ class DepartmentController extends Controller
 {
     public function index()
     {
+        Gate::authorize('department.view');
         $departments = Department::orderBy('sort_order')->paginate(10);
         return view('departments.index', compact('departments'));
     }
 
+    public function show(Department $department)
+    {
+        Gate::authorize('department.view');
+
+        return view('departments.show', compact('department'));
+    }
+
     public function create()
     {
+        Gate::authorize('department.create');
         return view('departments.create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('department.create');
         $data = $request->validate([
             'name'        => 'required|string|max:255',
             'category'    => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'icon'        => 'nullable|string|max:100',
-            'image'       => 'nullable|image|max:2048nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active'   => 'nullable|boolean',
             'sort_order'  => 'nullable|integer',
         ]);
@@ -48,11 +59,13 @@ class DepartmentController extends Controller
 
     public function edit(Department $department)
     {
+        Gate::authorize('department.edit');
         return view('departments.edit', compact('department'));
     }
 
     public function update(Request $request, Department $department)
     {
+        Gate::authorize('department.edit');
         $data = $request->validate([
             'name'        => 'required|string|max:255',
             'category'    => 'nullable|string|max:255',
@@ -82,6 +95,7 @@ class DepartmentController extends Controller
 
     public function destroy(Department $department)
     {
+        Gate::authorize('department.delete');
         if ($department->image) {
             Storage::disk('public')->delete($department->image);
         }

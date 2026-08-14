@@ -3,4 +3,8 @@
 use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
-Route::apiResource('roles', RoleController::class);
+// API routes require authentication.
+// Role management also requires appropriate permissions.
+Route::middleware(['auth:sanctum', 'role:super-admin'])->group(function () {
+    Route::apiResource('roles', RoleController::class);
+});

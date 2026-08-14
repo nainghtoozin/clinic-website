@@ -19,7 +19,7 @@
         <nav class="breadcrumbs">
             <div class="container">
                 <ol>
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="{{ route('public.index') }}">Home</a></li>
                     <li class="current">Services</li>
                 </ol>
             </div>
@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                             <div class="service-footer">
-                                <a href="service-details.html" class="service-btn">
+                                <a href="{{ route('public.services') }}" class="service-btn">
                                     Book Appointment
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
@@ -120,7 +120,7 @@
                                 </div>
                             </div>
                             <div class="service-footer">
-                                <a href="service-details.html" class="service-btn">
+                                <a href="{{ route('public.services') }}" class="service-btn">
                                     Order Tests
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
@@ -175,7 +175,7 @@
                                 </div>
                             </div>
                             <div class="service-footer">
-                                <a href="service-details.html" class="service-btn">
+                                <a href="{{ route('public.services') }}" class="service-btn">
                                     Learn More
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
@@ -202,7 +202,7 @@
                                 </div>
                             </div>
                             <div class="service-footer">
-                                <a href="service-details.html" class="service-btn">
+                                <a href="{{ route('public.services') }}" class="service-btn">
                                     Schedule Shot
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
@@ -256,7 +256,7 @@
                             deserve.</p>
                     </div>
                     <div class="banner-actions">
-                        <a href="appointment.html" class="btn-primary">Book Appointment</a>
+                        <a href="{{ route('public.appointment.create') }}" class="btn-primary">Book Appointment</a>
                         <a href="tel:+15551234567" class="btn-secondary">
                             <i class="fas fa-phone"></i>
                             Call Now

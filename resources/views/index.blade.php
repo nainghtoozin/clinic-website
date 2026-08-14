@@ -199,8 +199,8 @@
                         </div>
 
                         <div class="action-buttons">
-                            <a href="about.html" class="btn-explore">Explore Our Services</a>
-                            <a href="contact.html" class="btn-contact">
+                            <a href="{{ route('public.about') }}" class="btn-explore">Explore Our Services</a>
+                            <a href="{{ route('public.contact') }}" class="btn-contact">
                                 <i class="bi bi-telephone"></i>
                                 Schedule Consultation
                             </a>
@@ -839,8 +839,8 @@
                                 first.</p>
 
                             <div class="action-buttons">
-                                <a href="appointment.html" class="primary-btn">Schedule Consultation</a>
-                                <a href="services.html" class="secondary-link">
+                                <a href="{{ route('public.appointment.create') }}" class="primary-btn">Schedule Consultation</a>
+                                <a href="{{ route('public.services') }}" class="secondary-link">
                                     <span>Explore Services</span>
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
@@ -944,7 +944,7 @@
                             <i class="fas fa-phone"></i>
                             (555) 123-4567
                         </a>
-                        <a href="contact.html" class="contact-link">Get Directions</a>
+                        <a href="{{ route('public.contact') }}" class="contact-link">Get Directions</a>
                     </div>
                 </div>
             </div>

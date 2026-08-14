@@ -64,16 +64,6 @@
             Continue with Apple
         </button>
 
-        <!-- Register -->
-        <div class="text-center mt-4">
-            <small class="text-white-50">
-                Don’t have an account?
-                <a href="{{ route('register') }}" class="fw-semibold">
-                    Sign up
-                </a>
-            </small>
-        </div>
-
     </form>
 
 </x-guest-layout>

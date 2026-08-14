@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'SocialNet') }}</title>
+    <title>{{ config('app.name', 'Clinic') }}</title>
 
     <!-- Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -37,7 +37,7 @@
     <header id="header" class="header d-flex align-items-center fixed-top">
         <div class="container position-relative d-flex align-items-center justify-content-between">
 
-            <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
+            <a href="{{ route('public.index') }}" class="logo d-flex align-items-center me-auto me-xl-0">
                 <!-- Uncomment the line below if you also wish to use an image logo -->
                 <!-- <img src="assets/img/logo.webp" alt=""> -->
                 <h1 class="sitename">Medi<span>Nest</span></h1>
@@ -45,23 +45,23 @@
 
             <nav id="navmenu" class="navmenu">
                 <ul>
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="about.html">About</a></li>
+                    <li><a href="{{ route('public.index') }}" class="active">Home</a></li>
+                    <li><a href="{{ route('public.about') }}">About</a></li>
                     <li><a href="departments.html">Departments</a></li>
-                    <li><a href="services.html">Services</a></li>
-                    <li><a href="doctors.html">Doctors</a></li>
+                    <li><a href="{{ route('public.services') }}">Services</a></li>
+                    <li><a href="{{ route('public.doctor-list') }}">Doctors</a></li>
                     <li class="dropdown"><a href="#"><span>More Pages</span> <i
                                 class="bi bi-chevron-down toggle-dropdown"></i></a>
                         <ul>
-                            <li><a href="department-details.html">Department Details</a></li>
-                            <li><a href="service-details.html">Service Details</a></li>
-                            <li><a href="appointment.html">Appointment</a></li>
-                            <li><a href="testimonials.html">Testimonials</a></li>
-                            <li><a href="faq.html">Frequently Asked Questions</a></li>
-                            <li><a href="gallery.html">Gallery</a></li>
-                            <li><a href="terms.html">Terms</a></li>
-                            <li><a href="privacy.html">Privacy</a></li>
-                            <li><a href="404.html">404</a></li>
+                            <li><a href="{{ route('public.department') }}">Department Details</a></li>
+                            <li><a href="{{ route('public.services') }}">Service Details</a></li>
+                            <li><a href="{{ route('public.appointment.create') }}">Appointment</a></li>
+                            <li><a href="{{ route('public.testimonial') }}">Testimonials</a></li>
+                            <li><a href="{{ route('public.faq') }}">Frequently Asked Questions</a></li>
+                            <li><a href="{{ route('public.gallery') }}">Gallery</a></li>
+                            <li><a href="{{ route('public.terms') }}">Terms</a></li>
+                            <li><a href="{{ route('public.privacy') }}">Privacy</a></li>
+                            <li><a href="{{ route('public.error') }}">404</a></li>
                         </ul>
                     </li>
                     <li class="dropdown"><a href="#"><span>Dropdown</span> <i
@@ -83,7 +83,7 @@
                             <li><a href="#">Dropdown 4</a></li>
                         </ul>
                     </li>
-                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="{{ route('public.contact') }}">Contact</a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
@@ -295,8 +295,8 @@
                             </div>
 
                             <div class="action-buttons">
-                                <a href="about.html" class="btn-explore">Explore Our Services</a>
-                                <a href="contact.html" class="btn-contact">
+                                <a href="{{ route('public.about') }}" class="btn-explore">Explore Our Services</a>
+                                <a href="{{ route('public.contact') }}" class="btn-contact">
                                     <i class="bi bi-telephone"></i>
                                     Schedule Consultation
                                 </a>
@@ -968,8 +968,8 @@
                                     first.</p>
 
                                 <div class="action-buttons">
-                                    <a href="appointment.html" class="primary-btn">Schedule Consultation</a>
-                                    <a href="services.html" class="secondary-link">
+                                    <a href="{{ route('public.appointment.create') }}" class="primary-btn">Schedule Consultation</a>
+                                    <a href="{{ route('public.services') }}" class="secondary-link">
                                         <span>Explore Services</span>
                                         <i class="fas fa-arrow-right"></i>
                                     </a>
@@ -1073,7 +1073,7 @@
                                 <i class="fas fa-phone"></i>
                                 (555) 123-4567
                             </a>
-                            <a href="contact.html" class="contact-link">Get Directions</a>
+                            <a href="{{ route('public.contact') }}" class="contact-link">Get Directions</a>
                         </div>
                     </div>
                 </div>
@@ -1089,7 +1089,7 @@
         <div class="container footer-top">
             <div class="row gy-4">
                 <div class="col-lg-4 col-md-6 footer-about">
-                    <a href="index.html" class="logo d-flex align-items-center">
+                    <a href="{{ route('public.index') }}" class="logo d-flex align-items-center">
                         <span class="sitename">MediNest</span>
                     </a>
                     <div class="footer-contact pt-3">

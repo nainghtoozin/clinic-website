@@ -60,9 +60,9 @@ class DoctorFactory extends Factory
             'availability_note' => $this->faker->optional()->sentence(),
             'is_featured' => $this->faker->boolean(20),
 
-            'available_days' => $this->faker->randomElements(array_keys(DayOfWeek::options()), 2),
-            'start_time' => $this->faker->time(),
-            'end_time' => $this->faker->time(),
+            'available_days' => $this->faker->randomElements(array_keys(DayOfWeek::options()), $this->faker->numberBetween(2, 5)),
+            'start_time' => $this->faker->dateTimeBetween('today 08:00:00', 'today 10:30:00')->format('H:i'),
+            'end_time' => $this->faker->dateTimeBetween('today 16:00:00', 'today 18:00:00')->format('H:i'),
 
             // User
             'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),

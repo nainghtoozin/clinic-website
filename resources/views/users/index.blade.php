@@ -2,7 +2,7 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">👤 Users</h4>
-            @can('user.create')
+            @can('staff.create')
                 <a href="{{ route('users.create') }}" class="btn btn-primary">
                     + Add User
                 </a>
@@ -42,13 +42,13 @@
                                     @endforeach
                                 </td>
                                 <td>
-                                    @can('user.edit')
+                                    @can('staff.edit')
                                         <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary">
                                             Edit
                                         </a>
                                     @endcan
 
-                                    @can('user.delete')
+                                    @can('staff.delete')
                                         <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline"
                                             onsubmit="return confirm('Delete this user?')">
                                             @csrf

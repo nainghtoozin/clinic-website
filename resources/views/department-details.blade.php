@@ -19,7 +19,7 @@
     <nav class="breadcrumbs">
       <div class="container">
         <ol>
-          <li><a href="index.html">Home</a></li>
+          <li><a href="{{ route('public.index') }}">Home</a></li>
           <li class="current">Department Details</li>
         </ol>
       </div>
@@ -73,7 +73,7 @@
             </div>
 
             <div class="cta-section" data-aos="fade-up" data-aos-delay="400">
-              <a href="appointment.html" class="btn-appointment">
+              <a href="{{ route('public.appointment.create') }}" class="btn-appointment">
                 <i class="bi bi-calendar-plus"></i>
                 <span>Book Appointment</span>
               </a>
@@ -159,11 +159,11 @@
               <div class="info-card">
                 <h4>Quick Links</h4>
                 <div class="quick-links">
-                  <a href="services.html">
+                  <a href="{{ route('public.services') }}">
                     <i class="bi bi-arrow-right"></i>
                     <span>All Cardiology Services</span>
                   </a>
-                  <a href="doctors.html">
+                  <a href="{{ route('public.doctor-list') }}">
                     <i class="bi bi-arrow-right"></i>
                     <span>Meet Our Specialists</span>
                   </a>

@@ -8,7 +8,6 @@ class Service extends Model
 {
     protected $fillable = [
         'service_image',
-        'user_id',
         'title',
         'slug',
         'category',
@@ -21,6 +20,7 @@ class Service extends Model
 
     protected $casts = [
         'features' => 'array',
+        'price' => 'decimal:2',
         'status' => 'boolean',
     ];
 

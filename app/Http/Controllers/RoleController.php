@@ -2,40 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
-    protected string $permissionPrefix = 'role';
-    // public function __construct()
-    // {
-    //     // VIEW
-    //     $this->middleware('permission:role.view')
-    //         ->only(['index', 'show']);
-
-    //     // CREATE
-    //     $this->middleware('permission:role.create')
-    //         ->only(['create', 'store']);
-
-    //     // EDIT
-    //     $this->middleware('permission:role.edit')
-    //         ->only(['edit', 'update']);
-
-    //     // DELETE
-    //     $this->middleware('permission:role.delete')
-    //         ->only(['destroy']);
-    // }
     public function index()
     {
+        Gate::authorize('role.view');
         $roles = Role::with('permissions')->get();
         return view('roles.index', compact('roles'));
     }
 
     public function create()
     {
+        Gate::authorize('role.create');
         $permissions = Permission::all()->groupBy(function ($permission) {
             return explode('.', $permission->name)[0];
         });
@@ -45,6 +28,8 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('role.create');
+
         $request->validate([
             'name' => 'required|unique:roles,name',
             'permissions' => 'nullable|array'
@@ -59,34 +44,37 @@ class RoleController extends Controller
         return redirect()->route('roles.index')->with('success', 'Role created successfully');
     }
 
-    // 🔥 EDIT
+    public function show(Role $role)
+    {
+        Gate::authorize('role.view');
+
+        $role->load('permissions');
+
+        return view('roles.show', compact('role'));
+    }
+
     public function edit(Role $role)
     {
+        Gate::authorize('role.edit');
         $permissions = Permission::all()->groupBy(function ($permission) {
             return explode('.', $permission->name)[0];
         });
 
         $rolePermissions = $role->permissions->pluck('name')->toArray();
 
-        return view('roles.edit', compact(
-            'role',
-            'permissions',
-            'rolePermissions'
-        ));
+        return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
-    // 🔥 UPDATE
     public function update(Request $request, Role $role)
     {
+        Gate::authorize('role.edit');
+
         $request->validate([
             'name' => 'required|unique:roles,name,' . $role->id,
             'permissions' => 'nullable|array'
         ]);
 
-        $role->update([
-            'name' => $request->name
-        ]);
-
+        $role->update(['name' => $request->name]);
         $role->syncPermissions($request->permissions ?? []);
 
         return redirect()->route('roles.index')->with('success', 'Role updated successfully');
@@ -94,6 +82,7 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
+        Gate::authorize('role.delete');
         $role->delete();
         return back()->with('success', 'Role deleted');
     }

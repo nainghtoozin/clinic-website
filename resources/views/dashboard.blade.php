@@ -1,174 +1,275 @@
 <x-auth-layout>
 
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Today's Overview</h5>
+        @can('appointment.create')
+            <a href="{{ route('appointments.create') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> New Appointment
+            </a>
+        @endcan
+    </div>
 
     <!-- KPI Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Doctors</h6>
-                    <h3>{{ $doctorCount }}</h3>
-                    <i class="bi bi-person-badge fs-3 text-primary"></i>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-1">Appointments Today</div>
+                            <h4 class="mb-0">{{ $todayAppointments }}</h4>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 rounded p-2">
+                            <i class="bi bi-calendar-check text-primary"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Appointments</h6>
-                    <h3>{{ $appointmentCount }}</h3>
-                    <i class="bi bi-calendar-check fs-3 text-success"></i>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-1">Queue Waiting</div>
+                            <h4 class="mb-0 {{ $queueWaiting > 0 ? 'text-warning' : '' }}">{{ $queueWaiting }}</h4>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded p-2">
+                            <i class="bi bi-clock text-warning"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Patients</h6>
-                    <h3 class="counter" data-count="312">0</h3>
-                    <i class="bi bi-people fs-3 text-warning"></i>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-1">Consultations</div>
+                            <h4 class="mb-0">{{ $completedConsultations }}<small class="text-muted">/{{ $todayConsultations }}</small></h4>
+                        </div>
+                        <div class="bg-success bg-opacity-10 rounded p-2">
+                            <i class="bi bi-clipboard2-pulse text-success"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Reviews</h6>
-                    <h3 class="counter" data-count="89">0</h3>
-                    <i class="bi bi-star-fill fs-3 text-danger"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Pending</h6>
-                    <h3>{{ $pending }}</h3>
-                    <i class="bi bi-clock fs-3 text-warning"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Cancelled</h6>
-                    <h3>{{ $cancelled }}</h3>
-                    <i class="bi bi-x-circle fs-3 text-danger"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Completed</h6>
-                    <h3>{{ $completed }}</h3>
-                    <i class="bi bi-check-circle fs-3 text-success"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Reviews</h6>
-                    <h3 class="counter" data-count="89">0</h3>
-                    <i class="bi bi-star-fill fs-3 text-danger"></i>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-1">Patients Today</div>
+                            <h4 class="mb-0">{{ $todayNewPatients }}</h4>
+                        </div>
+                        <div class="bg-info bg-opacity-10 rounded p-2">
+                            <i class="bi bi-person-plus text-info"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Appointments & Doctors -->
-    <div class="row g-4">
+    @can('report.financial')
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="text-muted small mb-1">Invoiced Today</div>
+                    <h5 class="mb-0">{{ number_format($todayInvoiced, 2) }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="text-muted small mb-1">Paid Today</div>
+                    <h5 class="mb-0 text-success">{{ number_format($todayPaid, 2) }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card stat-card shadow-sm border-0 {{ $outstandingBalance > 0 ? 'border-start border-3 border-danger' : '' }}">
+                <div class="card-body py-3">
+                    <div class="text-muted small mb-1">Outstanding</div>
+                    <h5 class="mb-0 {{ $outstandingBalance > 0 ? 'text-danger' : '' }}">{{ number_format($outstandingBalance, 2) }}</h5>
+                    <small class="text-muted">{{ $currentOutstandingInvoices }} unpaid invoice(s)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endcan
 
-        <!-- Appointments -->
+    <div class="row g-4 mb-4">
+        <!-- Today's Appointments -->
         <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <strong>Upcoming Appointments</strong>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0 fw-semibold">Today's Appointments</h6>
+                    <a href="{{ route('appointments.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Patient</th>
-                                <th>Doctor</th>
-                                <th>Department</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <tbody>
-                            @forelse($appointments as $appointment)
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <td>{{ $appointment->name }}</td>
-                                    <td>{{ $appointment->doctor->name }}</td>
-                                    <td>{{ $appointment->department->name }}</td>
-                                    <td>{{ $appointment->date }}</td>
-                                    <td class="text-center">
-                                        <span
-                                            class="badge bg-{{ $appointment->status === 'approved'
-                                                ? 'success'
-                                                : ($appointment->status === 'cancelled'
-                                                    ? 'danger'
-                                                    : 'warning') }}">
-                                            {{ ucfirst($appointment->status) }}
-                                        </span>
-                                    </td>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted">
-                                        No appointments found
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @forelse($todayAppointmentsList as $appointment)
+                                    <tr>
+                                        <td>
+                                            <div class="fw-medium">{{ $appointment->name ?? $appointment->patient->name ?? '-' }}</div>
+                                            <small class="text-muted">{{ $appointment->appointment_number }}</small>
+                                        </td>
+                                        <td>{{ $appointment->doctor->name ?? '-' }}</td>
+                                        <td>{{ fmt_time($appointment->time) }}</td>
+                                        <td>
+                                            <span class="badge {{ $appointment->status->badgeClass() }}">
+                                                {{ $appointment->status->label() }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
+                                            No appointments scheduled for today
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Doctors Overview -->
+        <!-- Queue Status -->
         <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <strong>Doctors On Duty</strong>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0 fw-semibold">Queue</h6>
+                    <a href="{{ route('queue.index') }}" class="btn btn-sm btn-outline-primary">Open</a>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="https://i.pravatar.cc/40?img=1" class="rounded-circle me-2">
-                        <div>
-                            <strong>Dr. Amelia Brooks</strong><br>
-                            <small class="text-muted">Cardiology</small>
-                        </div>
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-clock text-warning me-2"></i>Waiting</span>
+                        <span class="badge bg-warning text-dark">{{ $queueWaiting }}</span>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="https://i.pravatar.cc/40?img=2" class="rounded-circle me-2">
-                        <div>
-                            <strong>Dr. Noah Turner</strong><br>
-                            <small class="text-muted">Pediatrics</small>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-megaphone text-info me-2"></i>Called</span>
+                        <span class="badge bg-info text-dark">{{ $queueCalled }}</span>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <img src="https://i.pravatar.cc/40?img=3" class="rounded-circle me-2">
-                        <div>
-                            <strong>Dr. Sofia Bennett</strong><br>
-                            <small class="text-muted">Dermatology</small>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-clipboard2-pulse text-primary me-2"></i>In Consultation</span>
+                        <span class="badge bg-primary">{{ $queueInConsultation }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                        <span class="small"><i class="bi bi-check-circle text-success me-2"></i>Completed</span>
+                        <span class="badge bg-success">{{ $queueCompleted }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Appointment Status -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-semibold">Appointments by Status</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-info-circle text-info me-2"></i>Scheduled</span>
+                        <span class="badge bg-info text-dark">{{ $appointmentsScheduled }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-check-circle text-success me-2"></i>Confirmed</span>
+                        <span class="badge bg-success">{{ $appointmentsConfirmed }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-box-arrow-in-right text-warning me-2"></i>Checked In</span>
+                        <span class="badge bg-warning text-dark">{{ $appointmentsCheckedIn }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-check2-all text-secondary me-2"></i>Completed</span>
+                        <span class="badge bg-secondary">{{ $appointmentsCompleted }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                        <span class="small"><i class="bi bi-x-circle text-danger me-2"></i>Cancelled</span>
+                        <span class="badge bg-danger">{{ $appointmentsCancelled }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Doctor Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-semibold">Doctors Today</h6>
+                </div>
+                <div class="card-body p-0">
+                    @forelse($doctorSummary as $doctor)
+                        <div class="d-flex align-items-center px-3 py-2 border-bottom">
+                            <div class="flex-grow-1">
+                                <div class="small fw-medium">{{ $doctor->name }}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">{{ $doctor->department->name ?? '-' }}</div>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ $doctor->today_appointments }}</span>
+                                <span class="badge bg-success bg-opacity-10 text-success">{{ $doctor->today_completed }}</span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+                            No doctors on duty today
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Alerts -->
+        @can('inventory.view')
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0 fw-semibold">Inventory Alerts</h6>
+                    <a href="{{ route('inventory.dashboard') }}" class="btn btn-sm btn-outline-primary">View</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-capsule text-primary me-2"></i>Active Medicines</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary">{{ $totalActiveMedicines }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Low Stock</span>
+                        <span class="badge bg-warning text-dark">{{ $lowStockCount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <span class="small"><i class="bi bi-x-octagon text-danger me-2"></i>Expired</span>
+                        <span class="badge bg-danger">{{ $expiredCount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                        <span class="small"><i class="bi bi-clock text-info me-2"></i>Expiring Soon</span>
+                        <span class="badge bg-info text-dark">{{ $expiringSoonCount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endcan
     </div>
+
 </x-auth-layout>

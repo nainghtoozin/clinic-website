@@ -106,7 +106,7 @@
                         </span>
                     </td>
                     <td class="text-end">
-                        @can('doctors.view')
+                        @can('doctor.view')
                             <button class="btn btn-sm btn-info" data-bs-toggle="modal"
                                 data-bs-target="#viewDoctor{{ $doctor->id }}">
                                 View

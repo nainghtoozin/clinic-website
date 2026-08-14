@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role'       => RoleMiddleware::class,
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\SetUserPreferences::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // default – do nothing

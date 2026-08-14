@@ -63,6 +63,11 @@ class Doctor extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function location()
     {
         return $this->belongsTo(Location::class);
