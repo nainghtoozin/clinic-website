@@ -44,7 +44,7 @@ class PaymentController extends Controller
         $invoice = null;
 
         if ($request->filled('invoice_id')) {
-            $invoice = Invoice::with(['patient', 'doctor', 'items'])
+            $invoice = Invoice::with(['patient', 'doctor', 'items', 'payments.recordedBy'])
                 ->findOrFail($request->invoice_id);
 
             if (!$invoice->canReceivePayment()) {

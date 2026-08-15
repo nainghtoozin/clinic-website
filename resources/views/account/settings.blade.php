@@ -1,10 +1,7 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-0">{{ __('app.settings.title') }}</h4>
-            <small class="text-muted">{{ __('app.settings.subtitle') }}</small>
-        </div>
-    </div>
+    <x-page-header title="{{ __('app.settings.title') }}" subtitle="{{ __('app.settings.subtitle') }}"
+        :breadcrumbs="[['label' => __('app.settings.title')]]">
+    </x-page-header>
 
     @php
         $supportedLocales = (array) config('app.supported_locales', ['en']);
@@ -21,7 +18,8 @@
         $showWknd   = (bool) ($settings['preferences']['show_weekends'] ?? true);
     @endphp
 
-    <div class="row g-4" x-data="{ activeSection: 'appearance' }">
+    <div class="row g-4" x-data="{ activeSection: 'appearance' }"
+        x-init="const s = window.location.hash.slice(1); if (['profile','appearance','localization','preferences','security','account'].includes(s)) activeSection = s;">
         {{-- Section navigation --}}
         <div class="col-md-4 col-lg-3">
             <div class="card shadow-sm border-0">
@@ -87,12 +85,20 @@
 
                             <div class="mb-3">
                                 <label class="form-label">{{ __('app.settings.profile_photo') }}</label>
-                                <div class="d-flex align-items-center gap-3">
-                                    <img src="{{ $user->avatar ? Storage::url($user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}"
-                                        alt="{{ $user->name }}" class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
-                                        style="width:80px;height:80px;object-fit:cover">
-                                    <input type="file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp"
-                                        class="form-control @error('avatar') is-invalid @enderror" style="max-width:320px">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    @if ($user->avatar)
+                                        <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}"
+                                            class="rounded-circle border border-2" style="width:80px;height:80px;object-fit:cover;">
+                                    @else
+                                        <span class="avatar bg-primary" style="width:80px;height:80px;font-size:1.5rem;border-radius:50%;">
+                                            {{ initials($user->name) }}
+                                        </span>
+                                    @endif
+                                    <div class="flex-grow-1" style="max-width:340px;">
+                                        <input type="file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp"
+                                            class="form-control @error('avatar') is-invalid @enderror">
+                                        <small class="text-muted">JPG, PNG, GIF or WEBP &middot; max 2MB</small>
+                                    </div>
                                 </div>
                                 @error('avatar')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -144,12 +150,24 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="theme" class="form-label">{{ __('app.settings.theme') }}</label>
-                            <select id="theme" name="appearance[theme]" class="form-select">
-                                <option value="light" @selected($theme === 'light')>{{ __('app.settings.theme_light') }}</option>
-                                <option value="dark" @selected($theme === 'dark')>{{ __('app.settings.theme_dark') }}</option>
-                                <option value="system" @selected($theme === 'system')>{{ __('app.settings.theme_system') }}</option>
-                            </select>
+                            <label class="form-label">{{ __('app.settings.theme') }}</label>
+                            <div class="row g-2">
+                                @foreach ([
+                                    'light' => ['icon' => 'bi-sun', 'label' => __('app.settings.theme_light'), 'desc' => 'Bright, always'],
+                                    'dark' => ['icon' => 'bi-moon-stars', 'label' => __('app.settings.theme_dark'), 'desc' => 'Dark, always'],
+                                    'system' => ['icon' => 'bi-display', 'label' => __('app.settings.theme_system'), 'desc' => 'Follow device'],
+                                ] as $value => $option)
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="appearance[theme]" value="{{ $value }}"
+                                            id="theme-{{ $value }}" @checked($theme === $value)>
+                                        <label class="btn btn-outline-primary w-100 d-flex flex-column align-items-center py-2" for="theme-{{ $value }}">
+                                            <i class="bi {{ $option['icon'] }} fs-4 mb-1"></i>
+                                            <span class="fw-semibold">{{ $option['label'] }}</span>
+                                            <small class="opacity-75">{{ $option['desc'] }}</small>
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="table_density" class="form-label">{{ __('app.settings.table_density') }}</label>

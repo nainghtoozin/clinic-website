@@ -79,6 +79,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('patients/{patient}/restore', [PatientController::class, 'restore'])
         ->name('patients.restore');
 
+    Route::get('/appointments/availability', [AppointmentController::class, 'availableSlots'])
+        ->name('appointments.availability');
+
     Route::resource('appointments', AppointmentController::class);
 
     Route::post('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])
@@ -150,7 +153,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/settings/account', [UserSettingController::class, 'store'])->name('user.settings.store');
 
     // Staff Management
-    Route::resource('staff', StaffController::class)->except(['show']);
+    Route::resource('staff', StaffController::class);
     Route::patch('/staff/{staff}/toggle-status', [StaffController::class, 'toggleStatus'])
         ->name('staff.toggle-status');
 

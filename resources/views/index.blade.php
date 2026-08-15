@@ -12,18 +12,18 @@
                                 <i class="bi bi-telephone-fill"></i>
                                 <div class="text">
                                     <span class="label">24/7 Emergency</span>
-                                    <span class="number">+1 (555) 911-2468</span>
+                                    <span class="number">{{ setting('site.phone') ?: '+1 (555) 911-2468' }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="floating-card stats-card" data-aos="fade-up" data-aos-delay="400">
                             <div class="stat-item">
-                                <span class="number">25K+</span>
+                                <span class="number">{{ $stats['patients'] }}+</span>
                                 <span class="label">Patients Treated</span>
                             </div>
                             <div class="stat-item">
-                                <span class="number">98%</span>
-                                <span class="label">Satisfaction Rate</span>
+                                <span class="number">{{ $stats['doctors'] }}+</span>
+                                <span class="label">Medical Specialists</span>
                             </div>
                         </div>
                     </div>
@@ -45,21 +45,21 @@
                                 <div class="stat">
                                     <i class="bi bi-award"></i>
                                     <div class="stat-text">
-                                        <span class="number">35+</span>
-                                        <span class="label">Years Experience</span>
+                                        <span class="number">{{ $stats['departments'] }}+</span>
+                                        <span class="label">Medical Departments</span>
                                     </div>
                                 </div>
                                 <div class="stat">
                                     <i class="bi bi-people"></i>
                                     <div class="stat-text">
-                                        <span class="number">150+</span>
+                                        <span class="number">{{ $stats['doctors'] }}+</span>
                                         <span class="label">Medical Specialists</span>
                                     </div>
                                 </div>
                                 <div class="stat">
                                     <i class="bi bi-geo-alt"></i>
                                     <div class="stat-text">
-                                        <span class="number">12</span>
+                                        <span class="number">{{ $stats['locations'] }}</span>
                                         <span class="label">Clinic Locations</span>
                                     </div>
                                 </div>
@@ -67,20 +67,20 @@
                         </div>
 
                         <div class="cta-section">
-                            <div class="cta-buttons">
-                                <a href="#" class="btn btn-primary">Schedule Consultation</a>
-                                <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8"
-                                    class="btn btn-secondary glightbox">
-                                    <i class="bi bi-play-circle"></i>
-                                    Watch Our Story
-                                </a>
-                            </div>
+                        <div class="cta-buttons">
+                            <a href="{{ route('public.appointment.create') }}" class="btn btn-primary">Schedule Consultation</a>
+                            <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8"
+                                class="btn btn-secondary glightbox">
+                                <i class="bi bi-play-circle"></i>
+                                Watch Our Story
+                            </a>
+                        </div>
 
-                            <div class="quick-actions">
-                                <a href="#" class="action-link">
-                                    <i class="bi bi-calendar-check"></i>
-                                    <span>Find Available Times</span>
-                                </a>
+                        <div class="quick-actions">
+                            <a href="{{ route('public.appointment.create') }}" class="action-link">
+                                <i class="bi bi-calendar-check"></i>
+                                <span>Find Available Times</span>
+                            </a>
                                 <a href="#" class="action-link">
                                     <i class="bi bi-chat-dots"></i>
                                     <span>Chat with Support</span>
@@ -277,12 +277,8 @@
                                         <p class="card-description">{{ $department->description }}</p>
                                         <div class="card-stats">
                                             <div class="stat-item">
-                                                <span class="stat-number">15+</span>
-                                                <span class="stat-label">Specialists</span>
-                                            </div>
-                                            <div class="stat-item">
-                                                <span class="stat-number">500+</span>
-                                                <span class="stat-label">Procedures</span>
+                                                <span class="stat-number">{{ $department->doctors_count }}</span>
+                                                <span class="stat-label">Doctors</span>
                                             </div>
                                         </div>
                                     </div>
@@ -435,113 +431,33 @@
 
             <div class="row gy-4">
 
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <div class="service-image">
-                            <img src="assets/img/health/cardiology-2.webp" alt="Service" class="img-fluid"
-                                loading="lazy">
-                        </div>
-                        <div class="service-content">
-                            <h3>Cardiology Excellence</h3>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ante ipsum primis
-                                in faucibus orci luctus et ultrices posuere cubilia curae.</p>
-                            <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div><!-- End Service Card -->
-
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="service-image">
-                            <img src="assets/img/health/neurology-3.webp" alt="Service" class="img-fluid"
-                                loading="lazy">
-                        </div>
-                        <div class="service-content">
-                            <h3>Neurology Care</h3>
-                            <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-                                veniam, quis nostrud exercitation ullamco laboris nisi.</p>
-                            <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                @forelse ($services as $service)
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ 200 + $loop->index * 100 }}">
+                        <div class="service-card">
+                            <div class="service-icon">
+                                <i class="{{ $service->icon ?: 'fas fa-heartbeat' }}"></i>
+                            </div>
+                            @if ($service->service_image)
+                                <div class="service-image">
+                                    <img src="{{ asset('storage/' . $service->service_image) }}" alt="{{ $service->title }}"
+                                        class="img-fluid" loading="lazy">
+                                </div>
+                            @endif
+                            <div class="service-content">
+                                <h3>{{ $service->title }}</h3>
+                                <p>{{ $service->description }}</p>
+                                <a href="{{ route('public.service_details', $service) }}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                            </div>
                         </div>
                     </div>
-                </div><!-- End Service Card -->
-
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-bone"></i>
-                        </div>
-                        <div class="service-image">
-                            <img src="assets/img/health/orthopedics-1.webp" alt="Service" class="img-fluid"
-                                loading="lazy">
-                        </div>
-                        <div class="service-content">
-                            <h3>Orthopedic Surgery</h3>
-                            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
-                            <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                @empty
+                    <div class="col-12">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-stethoscope fs-1 d-block mb-2"></i>
+                            <p class="mb-0">Our services are being updated. Please check back soon.</p>
                         </div>
                     </div>
-                </div><!-- End Service Card -->
-
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-baby"></i>
-                        </div>
-                        <div class="service-image">
-                            <img src="assets/img/health/pediatrics-4.webp" alt="Service" class="img-fluid"
-                                loading="lazy">
-                        </div>
-                        <div class="service-content">
-                            <h3>Pediatric Care</h3>
-                            <p>Sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis
-                                unde omnis iste natus error sit voluptatem accusantium.</p>
-                            <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div><!-- End Service Card -->
-
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-ribbon"></i>
-                        </div>
-                        <div class="service-image">
-                            <img src="assets/img/health/oncology-2.webp" alt="Service" class="img-fluid"
-                                loading="lazy">
-                        </div>
-                        <div class="service-content">
-                            <h3>Oncology Treatment</h3>
-                            <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium
-                                voluptatum deleniti atque corrupti quos dolores et quas molestias.</p>
-                            <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div><!-- End Service Card -->
-
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="service-card">
-                        <div class="service-icon">
-                            <i class="fas fa-flask"></i>
-                        </div>
-                        <div class="service-image">
-                            <img src="assets/img/health/laboratory-3.webp" alt="Service" class="img-fluid"
-                                loading="lazy">
-                        </div>
-                        <div class="service-content">
-                            <h3>Laboratory Services</h3>
-                            <p>Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe
-                                eveniet ut et voluptates repudiandae sint et molestiae non recusandae.</p>
-                            <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div><!-- End Service Card -->
+                @endforelse
 
             </div>
 
@@ -579,8 +495,14 @@
                             <div class="specialist-info">
                                 <div class="profile-section">
                                     <div class="profile-image">
-                                        <img src="{{ $doctor->profile_image ? asset('storage/' . $doctor->profile_image) : 'https://ui-avatars.com/api/?name=' . urlencode($doctor->name) }}"
-                                            class="img-fluid" alt="{{ $doctor->name }}" loading="lazy">
+                                        @if ($doctor->profile_image)
+                                            <img src="{{ Storage::url($doctor->profile_image) }}" class="img-fluid"
+                                                alt="{{ $doctor->name }}" loading="lazy">
+                                        @else
+                                            <span class="profile-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:2rem;color:var(--accent-color,#0d6efd);background:color-mix(in srgb,var(--accent-color,#0d6efd),transparent 85%);">
+                                                {{ initials($doctor->name) }}
+                                            </span>
+                                        @endif
                                         @if ($doctor->is_available === true)
                                             <div class="online-status active"></div>
                                         @endif
@@ -588,24 +510,23 @@
                                     </div>
                                     <div class="specialist-data">
                                         <h3>{{ $doctor->name }}</h3>
-                                        <p class="specialty">{{ $doctor->qualifications }}</p>
+                                        <p class="specialty">{{ $doctor->qualifications ?: ($doctor->title ?: ($doctor->role ?: 'Medical Specialist')) }}</p>
                                         <div class="credentials">
-                                            <span
-                                                class="badge">{{ $doctor->board_certified ? 'Board Certified' : 'Not Board Certified' }}</span>
-                                            <span class="experience">{{ $doctor->experience_years }} years</span>
+                                            @if ($doctor->board_certified)
+                                                <span class="badge">Board Certified</span>
+                                            @endif
+                                            @if ($doctor->experience_years !== null)
+                                                <span class="experience">{{ $doctor->experience_years }} years</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                                 <div class="rating-info">
                                     <div class="stars-display">
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-hospital"></i>
                                     </div>
-                                    <span class="score">4.9</span>
-                                    <small>(142 patients)</small>
+                                    <span class="score">{{ $doctor->department?->name ?? 'General' }}</span>
+                                    <small>{{ $doctor->is_available ? 'Available' : 'Currently unavailable' }}</small>
                                 </div>
                             </div>
                             <div class="quick-actions">
@@ -860,19 +781,19 @@
                 <div class="row">
                     <div class="col-lg-3 col-md-6">
                         <div class="stat-item">
-                            <div class="stat-number">25+</div>
-                            <div class="stat-label">Years Experience</div>
+                            <div class="stat-number">{{ $stats['departments'] }}+</div>
+                            <div class="stat-label">Medical Departments</div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <div class="stat-item">
-                            <div class="stat-number">15K+</div>
+                            <div class="stat-number">{{ $stats['patients'] }}+</div>
                             <div class="stat-label">Happy Patients</div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <div class="stat-item">
-                            <div class="stat-number">50+</div>
+                            <div class="stat-number">{{ $stats['doctors'] }}+</div>
                             <div class="stat-label">Medical Experts</div>
                         </div>
                     </div>
@@ -888,41 +809,22 @@
             <div class="services-grid" data-aos="fade-up" data-aos-delay="500">
                 <div class="row">
 
-                    <div class="col-lg-4 col-md-6">
-                        <div class="service-card" data-aos="fade-up" data-aos-delay="100">
-                            <div class="service-icon">
-                                <i class="fas fa-heartbeat"></i>
+                    @forelse ($services->take(3) as $service)
+                        <div class="col-lg-4 col-md-6">
+                            <div class="service-card" data-aos="fade-up" data-aos-delay="{{ 100 + $loop->index * 100 }}">
+                                <div class="service-icon">
+                                    <i class="{{ $service->icon ?: 'fas fa-heartbeat' }}"></i>
+                                </div>
+                                <h4>{{ $service->title }}</h4>
+                                <p>{{ Str::limit($service->description, 140) }}</p>
+                                <a href="{{ route('public.service_details', $service) }}" class="service-link">Learn More</a>
                             </div>
-                            <h4>Cardiology Excellence</h4>
-                            <p>Advanced cardiac care with state-of-the-art diagnostic equipment and experienced
-                                cardiologists dedicated to heart health.</p>
-                            <a href="#" class="service-link">Learn More</a>
                         </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <div class="service-card" data-aos="fade-up" data-aos-delay="200">
-                            <div class="service-icon">
-                                <i class="fas fa-brain"></i>
-                            </div>
-                            <h4>Neurology Center</h4>
-                            <p>Comprehensive neurological services including diagnosis and treatment of brain,
-                                spine, and nervous system conditions.</p>
-                            <a href="#" class="service-link">Learn More</a>
+                    @empty
+                        <div class="col-12 text-center text-muted py-4">
+                            Our services are being updated.
                         </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <div class="service-card" data-aos="fade-up" data-aos-delay="300">
-                            <div class="service-icon">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <h4>Preventive Care</h4>
-                            <p>Proactive health screenings and wellness programs designed to prevent illness and
-                                maintain optimal health.</p>
-                            <a href="#" class="service-link">Learn More</a>
-                        </div>
-                    </div>
+                    @endforelse
 
                 </div>
             </div>
@@ -940,9 +842,9 @@
                         </div>
                     </div>
                     <div class="contact-actions">
-                        <a href="tel:+15551234567" class="call-btn">
+                        <a href="tel:{{ setting('site.phone') ? preg_replace('/[^0-9+]/', '', setting('site.phone')) : '+15551234567' }}" class="call-btn">
                             <i class="fas fa-phone"></i>
-                            (555) 123-4567
+                            {{ setting('site.phone') ?: '(555) 123-4567' }}
                         </a>
                         <a href="{{ route('public.contact') }}" class="contact-link">Get Directions</a>
                     </div>

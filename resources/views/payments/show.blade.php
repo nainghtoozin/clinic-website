@@ -1,11 +1,13 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div><h4 class="mb-0">Payment #{{ $payment->id }}</h4><small class="text-muted">{{ fmt_datetime($payment->paid_at) }}</small></div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('payments.receipt', $payment) }}" class="btn btn-info"><i class="bi bi-receipt me-1"></i> Receipt</a>
-            <a href="{{ route('invoices.show', $payment->invoice) }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back</a>
-        </div>
-    </div>
+    <x-page-header title="Payment Details" subtitle="{{ $payment->invoice->patient?->name ?? '' }} &middot; {{ fmt_datetime($payment->paid_at) }}"
+        :breadcrumbs="[['label' => 'Payments', 'url' => route('payments.index')], ['label' => 'Payment #' . $payment->id]]">
+        <a href="{{ route('payments.receipt', $payment) }}" class="btn btn-info btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-receipt me-1"></i> Receipt
+        </a>
+        <a href="{{ route('invoices.show', $payment->invoice) }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back to Invoice
+        </a>
+    </x-page-header>
 
     <div class="row">
         <div class="col-lg-6">

@@ -1,25 +1,20 @@
 <x-auth-layout>
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-0">Patient Profile</h5>
-            <small class="text-muted">{{ $patient->patient_number }}</small>
-        </div>
-        <div class="d-flex gap-2">
-            @can('appointment.create')
-                <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-calendar-plus me-1"></i> Book Appointment
-                </a>
-            @endcan
-            @can('patient.edit')
-                <a href="{{ route('patients.edit', $patient) }}" class="btn btn-outline-warning btn-sm">
-                    <i class="bi bi-pencil me-1"></i> Edit
-                </a>
-            @endcan
-            <a href="{{ route('patients.index') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Back
+    <x-page-header title="Patient Profile" subtitle="{{ $patient->patient_number }}"
+        :breadcrumbs="[['label' => 'Patients', 'url' => route('patients.index')], ['label' => $patient->name]]">
+        @can('appointment.create')
+            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-calendar-plus me-1"></i> Book Appointment
             </a>
-        </div>
-    </div>
+        @endcan
+        @can('patient.edit')
+            <a href="{{ route('patients.edit', $patient) }}" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+        @endcan
+        <a href="{{ route('patients.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </x-page-header>
 
     @if ($patient->allergies)
         <div class="alert alert-danger py-2 mb-4">
@@ -30,54 +25,65 @@
 
     <div class="row">
         <div class="col-lg-8">
+            {{-- Profile --}}
             <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
-                    <h6 class="mb-0"><i class="bi bi-person me-2"></i>Personal Information</h6>
-                    <span class="badge bg-{{ $patient->status === 'active' ? 'success' : ($patient->status === 'inactive' ? 'warning' : 'secondary') }}">
-                        {{ ucfirst($patient->status) }}
-                    </span>
-                </div>
                 <div class="card-body">
+                    <div class="d-flex align-items-start gap-3">
+                        <span class="avatar bg-primary" style="width:56px;height:56px;font-size:1.25rem;border-radius:14px;">
+                            {{ initials($patient->name) }}
+                        </span>
+                        <div class="flex-grow-1 min-w-0">
+                            <h5 class="mb-1">{{ $patient->name }}</h5>
+                            <div class="text-muted small mb-2">{{ $patient->patient_number }}</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge {{ $patient->status === 'active' ? 'bg-success' : ($patient->status === 'inactive' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                                    <span class="status-dot"></span>{{ ucfirst($patient->status) }}
+                                </span>
+                                @if ($patient->date_of_birth)
+                                    <span class="badge bg-light text-dark border">{{ \Illuminate\Support\Carbon::parse($patient->date_of_birth)->age }} years old</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-3">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Patient Number</label>
-                            <div class="fw-semibold">{{ $patient->patient_number }}</div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label text-muted small mb-0">Gender</label>
+                            <div class="fw-semibold">{{ ucfirst($patient->gender ?? '-') }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Full Name</label>
-                            <div class="fw-semibold">{{ $patient->name }}</div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label text-muted small mb-0">Date of Birth</label>
+                            <div class="fw-semibold">{{ $patient->date_of_birth ? fmt_date($patient->date_of_birth) : '-' }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Phone</label>
-                            <div>{{ $patient->phone ?? '-' }}</div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label text-muted small mb-0">Blood Group</label>
+                            <div class="fw-semibold">{{ $patient->blood_group ?? '-' }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Email</label>
-                            <div>{{ $patient->email ?? '-' }}</div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label text-muted small mb-0">Phone</label>
+                            <div class="fw-semibold">{{ $patient->phone ?? '-' }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Date of Birth</label>
-                            <div>{{ $patient->date_of_birth ? fmt_date($patient->date_of_birth) : '-' }}</div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label text-muted small mb-0">Email</label>
+                            <div class="fw-semibold text-truncate">{{ $patient->email ?? '-' }}</div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Gender</label>
-                            <div>{{ ucfirst($patient->gender ?? '-') }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small">Blood Group</label>
-                            <div>{{ $patient->blood_group ?? '-' }}</div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label text-muted small mb-0">Registered</label>
+                            <div class="fw-semibold">{{ fmt_date($patient->created_at) }}</div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label text-muted small">Address</label>
+                            <label class="form-label text-muted small mb-0">Address</label>
                             <div>{{ $patient->address ?? '-' }}</div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {{-- Appointment History --}}
             <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white py-2">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
                     <h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Appointment History</h6>
+                    <span class="badge bg-light text-dark border">{{ $patient->appointments->count() }}</span>
                 </div>
                 <div class="card-body p-0">
                     @if ($patient->appointments->isEmpty())
@@ -126,6 +132,7 @@
                 </div>
             </div>
 
+            {{-- Consultation History --}}
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-2">
                     <h6 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Consultation History</h6>
@@ -176,6 +183,7 @@
                 </div>
             </div>
 
+            {{-- Prescription History --}}
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-2">
                     <h6 class="mb-0"><i class="bi bi-file-medical me-2"></i>Prescription History</h6>
@@ -223,10 +231,12 @@
                 </div>
             </div>
 
+            {{-- Billing History --}}
             @can('invoice.view')
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
                     <h6 class="mb-0"><i class="bi bi-receipt me-2"></i>Billing History</h6>
+                    <span class="badge bg-light text-dark border">{{ $patient->invoices->count() }}</span>
                 </div>
                 <div class="card-body p-0">
                     @if ($patient->invoices->isEmpty())
@@ -349,7 +359,15 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Total Appointments</span>
-                        <span class="fw-semibold">{{ $patient->appointments_count }}</span>
+                        <span class="fw-semibold">{{ $patient->appointments->count() }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Prescriptions</span>
+                        <span class="fw-semibold">{{ $patient->prescriptions->count() }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Consultations</span>
+                        <span class="fw-semibold">{{ $consultations->total() }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Registered</span>

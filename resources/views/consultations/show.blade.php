@@ -1,35 +1,31 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-0">Consultation Details</h4>
-            <small class="text-muted">{{ fmt_datetime($consultation->created_at) }}</small>
-        </div>
-        <div class="d-flex gap-2">
-            @can('prescription.create')
-                <a href="{{ route('prescriptions.create', ['consultation_id' => $consultation->id]) }}" class="btn btn-info">
-                    <i class="bi bi-file-medical me-1"></i> Add Prescription
+    <x-page-header title="Consultation Details" subtitle="{{ $consultation->patient?->name ?? '' }} &middot; {{ fmt_datetime($consultation->created_at) }}"
+        :breadcrumbs="[['label' => 'Consultations', 'url' => route('consultations.index')], ['label' => $consultation->patient?->name ?? 'Consultation']]">
+        @can('prescription.create')
+            <a href="{{ route('prescriptions.create', ['consultation_id' => $consultation->id]) }}" class="btn btn-info btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-file-medical me-1"></i> Add Prescription
+            </a>
+        @endcan
+        @if ($consultation->isDraft())
+            @can('consultation.complete')
+                <form method="POST" action="{{ route('consultations.complete', $consultation) }}" class="d-inline">
+                    @csrf
+                    <button class="btn btn-success btn-sm d-inline-flex align-items-center"
+                        onclick="return confirm('Complete this consultation? This will also complete the queue ticket and appointment.')">
+                        <i class="bi bi-check-circle me-1"></i> Save & Complete Visit
+                    </button>
+                </form>
+            @endcan
+            @can('consultation.edit')
+                <a href="{{ route('consultations.edit', $consultation) }}" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center">
+                    <i class="bi bi-pencil me-1"></i> Edit
                 </a>
             @endcan
-            @if ($consultation->isDraft())
-                @can('consultation.complete')
-                    <form method="POST" action="{{ route('consultations.complete', $consultation) }}">
-                        @csrf
-                        <button class="btn btn-success" onclick="return confirm('Complete this consultation? This will also complete the queue ticket and appointment.')">
-                            <i class="bi bi-check-circle me-1"></i> Save & Complete Visit
-                        </button>
-                    </form>
-                @endcan
-                @can('consultation.edit')
-                    <a href="{{ route('consultations.edit', $consultation) }}" class="btn btn-warning">
-                        <i class="bi bi-pencil me-1"></i> Edit
-                    </a>
-                @endcan
-            @endif
-            <a href="{{ route('consultations.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back
-            </a>
-        </div>
-    </div>
+        @endif
+        <a href="{{ route('consultations.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </x-page-header>
 
     <div class="row">
         <div class="col-lg-8">

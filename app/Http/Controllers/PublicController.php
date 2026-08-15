@@ -12,7 +12,7 @@ class PublicController extends Controller
 {
     public function index(Request $request)
     {
-        $departments = Department::orderBy('sort_order')->paginate(10);
+        $departments = Department::withCount('doctors')->orderBy('sort_order')->paginate(10);
         $query = Doctor::with(['department', 'location']);
 
         // 🔍 Name search
@@ -36,10 +36,21 @@ class PublicController extends Controller
         }
 
         $doctors = $query->latest()->paginate(10)->withQueryString();
+
+        $stats = [
+            'patients' => \App\Models\Patient::count(),
+            'doctors' => \App\Models\Doctor::count(),
+            'departments' => \App\Models\Department::count(),
+            'services' => \App\Models\Service::where('status', true)->count(),
+            'locations' => \App\Models\Location::count(),
+        ];
+
         return view('index', [
             'doctors'     => $doctors,
             'departments' => Department::orderBy('name')->get(),
             'locations'   => Location::orderBy('name')->get(),
+            'services'    => \App\Models\Service::where('status', true)->orderBy('title')->take(6)->get(),
+            'stats'       => $stats,
         ]);
     }
     public function error()

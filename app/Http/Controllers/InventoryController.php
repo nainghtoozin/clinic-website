@@ -77,8 +77,31 @@ class InventoryController extends Controller
             ->take(10)
             ->get();
 
+        $lowStockMedicines = Medicine::with('prescriptionItems')
+            ->whereColumn('stock_quantity', '<=', 'minimum_stock_level')
+            ->orderBy('stock_quantity')
+            ->take(5)
+            ->get();
+
+        $expiringMedicines = Medicine::where('expiry_date', '>=', now())
+            ->where('expiry_date', '<=', now()->addDays(30))
+            ->orderBy('expiry_date')
+            ->take(5)
+            ->get();
+
+        $expiredMedicines = Medicine::where('expiry_date', '<', now())
+            ->orderBy('expiry_date')
+            ->take(5)
+            ->get();
+
+        $totalStockValue = Medicine::query()
+            ->selectRaw('SUM(COALESCE(stock_quantity, 0) * COALESCE(unit_price, 0)) as value')
+            ->value('value') ?? 0;
+
         return view('inventory.dashboard', compact(
-            'totalMedicines', 'lowStock', 'outOfStock', 'expired', 'expiringSoon', 'recentMovements'
+            'totalMedicines', 'lowStock', 'outOfStock', 'expired', 'expiringSoon',
+            'recentMovements', 'lowStockMedicines', 'expiringMedicines',
+            'expiredMedicines', 'totalStockValue'
         ));
     }
 

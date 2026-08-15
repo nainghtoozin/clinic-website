@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\Medicine;
 use App\Models\Payment;
 use App\Models\Patient;
+use App\Models\Prescription;
 use App\Models\QueueTicket;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -44,11 +45,17 @@ class DashboardController extends Controller
         // Patient KPIs
         $todayNewPatients = Patient::whereDate('created_at', $today)->count();
         $totalActivePatients = Patient::active()->count();
+        $totalPatients = Patient::count();
 
         // Consultation KPIs
         $todayConsultations = Consultation::whereDate('created_at', $today)->count();
         $completedConsultations = Consultation::whereDate('created_at', $today)
             ->where('status', 'completed')->count();
+
+        // Overall KPIs
+        $totalAppointments = Appointment::whereNotIn('status', [AppointmentStatus::Cancelled->value])->count();
+        $availableDoctors = Doctor::where('is_available', true)->count();
+        $prescriptionsToday = Prescription::whereDate('created_at', $today)->count();
 
         // Financial KPIs (admin only — checked in view)
         $todayInvoiced = Invoice::whereDate('created_at', $today)
@@ -111,8 +118,12 @@ class DashboardController extends Controller
             'queueCompleted',
             'todayNewPatients',
             'totalActivePatients',
+            'totalPatients',
             'todayConsultations',
             'completedConsultations',
+            'totalAppointments',
+            'availableDoctors',
+            'prescriptionsToday',
             'todayInvoiced',
             'todayPaid',
             'outstandingBalance',

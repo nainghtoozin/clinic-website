@@ -23,213 +23,33 @@
         })();
     </script>
 
+    <!-- Fonts (matches the public template) -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <style>
-        body {
-            background: #f5f7fb;
-            font-size: 0.9rem;
-        }
-
-        [data-bs-theme="dark"] body {
-            background: #1b1e23;
-        }
-        [data-bs-theme="dark"] .bg-white {
-            background-color: var(--bs-tertiary-bg) !important;
-        }
-        [data-bs-theme="dark"] .topbar {
-            background: var(--bs-body-bg) !important;
-            border-color: var(--bs-border-color) !important;
-        }
-
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            height: 100dvh;
-            background: linear-gradient(180deg, #0d6efd 0%, #0b5ed7 100%);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1040;
-            overflow-y: auto;
-            overflow-x: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar .sidebar-brand {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background: linear-gradient(180deg, #0d6efd 0%, #0b5ed7 100%);
-            padding: 1rem 1.25rem;
-            font-weight: 700;
-            color: #fff;
-            font-size: 1.1rem;
-            letter-spacing: -0.3px;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-        }
-
-        .sidebar .nav-section {
-            padding: 0.75rem 1.25rem 0.25rem;
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.5);
-        }
-
-        .sidebar a {
-            color: rgba(255,255,255,0.85);
-            text-decoration: none;
-            padding: 0.5rem 1.25rem;
-            display: flex;
-            align-items: center;
-            font-size: 0.85rem;
-            border-radius: 0;
-            transition: all 0.15s;
-        }
-
-        .sidebar a:hover {
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-        }
-
-        .sidebar a.active {
-            background: rgba(255,255,255,0.18);
-            color: #fff;
-            font-weight: 500;
-        }
-
-        .sidebar a i {
-            width: 20px;
-            text-align: center;
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .topbar {
-            background: #fff;
-            border-bottom: 1px solid #e9ecef;
-            padding: 0.6rem 1.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 1030;
-        }
-
-        .sidebar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            color: #333;
-            cursor: pointer;
-            padding: 0.25rem;
-        }
-
-        @media (max-width: 991.98px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .sidebar-toggle {
-                display: inline-block;
-            }
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.4);
-                z-index: 1035;
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-        }
-
-        .stat-card {
-            border-radius: 10px;
-            transition: transform 0.15s;
-        }
-        .stat-card:hover {
-            transform: translateY(-1px);
-        }
-
-        .page-header {
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #e9ecef;
-            margin-bottom: 1.25rem;
-        }
-
-        /* Collapsed sidebar preference */
-        body.sidebar-collapsed .sidebar {
-            width: 64px;
-        }
-        body.sidebar-collapsed .sidebar .sidebar-brand {
-            padding: 1rem 0.5rem;
-            justify-content: center;
-            font-size: 0;
-        }
-        body.sidebar-collapsed .sidebar .sidebar-brand i {
-            font-size: 1.25rem;
-        }
-        body.sidebar-collapsed .sidebar .nav-section {
-            text-align: center;
-            padding: 0.75rem 0 0.25rem;
-            font-size: 0;
-        }
-        body.sidebar-collapsed .sidebar .nav-section::first-letter {
-            font-size: 0.65rem;
-        }
-        body.sidebar-collapsed .sidebar a {
-            padding: 0.6rem 0;
-            justify-content: center;
-        }
-        body.sidebar-collapsed .sidebar a i {
-            margin-right: 0;
-        }
-        body.sidebar-collapsed .sidebar a {
-            font-size: 0;
-        }
-        body.sidebar-collapsed .sidebar a i {
-            font-size: 1.05rem;
-        }
-        body.sidebar-collapsed .main-content {
-            margin-left: 64px;
-        }
-
-        /* Table density preference */
-        body.density-compact .table td,
-        body.density-compact .table th {
-            padding: 0.3rem 0.4rem;
-            font-size: 0.85rem;
-        }
-    </style>
 </head>
 
 <body class="{{ ($userSidebar ?? 'expanded') === 'collapsed' ? 'sidebar-collapsed ' : '' }}{{ ($userTableDensity ?? 'comfortable') === 'compact' ? 'density-compact' : 'density-comfortable' }}">
 
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <i class="bi bi-hospital me-2"></i>{{ config('app.name', __('app.app_name')) }}
-        </div>
+        <a href="{{ route('dashboard') }}" class="sidebar-brand">
+            <span class="brand-mark"><i class="bi bi-hospital"></i></span>
+            <span class="brand-text">
+                <span class="brand-name">{{ setting('site.site_name') ?: config('app.name') }}</span>
+                <span class="brand-sub">{{ __('app.admin_panel') }}</span>
+            </span>
+        </a>
 
         @can('dashboard.view')
-        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i> {{ __('app.nav.dashboard') }}
-        </a>
+            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="bi bi-speedometer2"></i> {{ __('app.nav.dashboard') }}
+            </a>
         @endcan
 
         <div class="nav-section">{{ __('app.nav.section_patients') }}</div>
@@ -316,55 +136,77 @@
         @endcan
 
         <div class="nav-section">{{ __('app.nav.section_account') }}</div>
-        <a href="{{ route('user.settings') }}" class="{{ request()->routeIs('user.settings*') ? 'active' : '' }}">
-            <i class="bi bi-person-gear"></i> {{ __('app.nav.account_settings') }}
+        <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">
+            <i class="bi bi-person-badge"></i> {{ __('app.topbar.profile') }}
         </a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="sidebar-link">
+                <i class="bi bi-box-arrow-right"></i> <span>{{ __('app.topbar.log_out') }}</span>
+            </button>
+        </form>
 
-        <div style="height: 2rem;"></div>
+        <div style="height: 2rem; flex-shrink: 0;"></div>
     </aside>
 
     <div class="main-content">
-        <div class="topbar d-flex justify-content-between align-items-center">
+        <div class="topbar d-flex justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-2">
-                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
                     <i class="bi bi-list"></i>
                 </button>
-                <span class="text-muted small d-none d-md-inline">{{ \Illuminate\Support\Carbon::now($userTimezone ?? config('app.timezone', 'UTC'))->format(($userDateFormat ?? 'M d, Y')) }}</span>
+                <span class="text-muted small d-none d-md-inline">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    {{ \Illuminate\Support\Carbon::now($userTimezone ?? config('app.timezone', 'UTC'))->format(($userDateFormat ?? 'M d, Y')) }}
+                </span>
             </div>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-light dropdown-toggle d-flex align-items-center gap-2" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:30px;height:30px;font-size:0.8rem;">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </span>
-                    <span class="fw-medium d-none d-sm-inline">{{ Auth::user()->name }}</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li>
-                        <span class="dropdown-item-text small text-muted">
-                            {{ Auth::user()->email }}
-                        </span>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                            <i class="bi bi-person me-2"></i> {{ __('app.topbar.profile') }}
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="dropdown-item text-danger">
-                                <i class="bi bi-box-arrow-right me-2"></i> {{ __('app.topbar.log_out') }}
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+
+            <div class="d-flex align-items-center gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2 border-0 shadow-none py-1 px-2" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        @if (Auth::user()->avatar)
+                            <img src="{{ Storage::url(Auth::user()->avatar) }}" alt="" class="avatar avatar-sm">
+                        @else
+                            <span class="avatar avatar-sm bg-primary">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            </span>
+                        @endif
+                        <span class="fw-medium d-none d-sm-inline">{{ Auth::user()->name }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1">
+                        <li>
+                            <div class="px-3 py-2">
+                                <div class="fw-semibold text-truncate" style="max-width:220px;">{{ Auth::user()->name }}</div>
+                                <div class="small text-muted text-truncate" style="max-width:220px;">{{ Auth::user()->email }}</div>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                <i class="bi bi-person me-2"></i> {{ __('app.topbar.profile') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('user.settings') }}">
+                                <i class="bi bi-gear me-2"></i> {{ __('app.nav.settings') }}
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right me-2"></i> {{ __('app.topbar.log_out') }}
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
-        <div class="p-3 p-md-4">
+        <main class="page-container">
             @if (session('success'))
                 <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" x-transition
                     class="position-fixed top-0 end-0 p-3" style="z-index: 1060">
@@ -393,15 +235,14 @@
             @endif
 
             {{ $slot }}
-        </div>
+        </main>
+
+        <footer class="text-center text-muted small py-3">
+            {{ setting('site.site_name') ?: config('app.name') }} &middot; {{ __('app.admin_panel') }}
+        </footer>
     </div>
 
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('show');
-            document.querySelector('.sidebar-overlay').classList.toggle('show');
-        }
-    </script>
+    @stack('scripts')
 </body>
 
 </html>

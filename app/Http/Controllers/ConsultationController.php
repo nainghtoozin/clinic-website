@@ -19,6 +19,16 @@ class ConsultationController extends Controller
 
         $query = Consultation::with(['patient', 'doctor', 'appointment']);
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('diagnosis', 'like', "%{$search}%")
+                  ->orWhere('symptoms', 'like', "%{$search}%")
+                  ->orWhereHas('patient', fn ($pq) => $pq->where('name', 'like', "%{$search}%")
+                      ->orWhere('patient_number', 'like', "%{$search}%"));
+            });
+        }
+
         if ($request->filled('doctor_id')) {
             $query->where('doctor_id', $request->doctor_id);
         }
@@ -64,8 +74,9 @@ class ConsultationController extends Controller
         }
 
         $patients = Patient::where('status', 'active')->orderBy('name')->get();
+        $doctors = \App\Models\Doctor::where('is_available', true)->with('department')->orderBy('name')->get();
 
-        return view('consultations.create', compact('ticket', 'patient', 'appointment', 'patients'));
+        return view('consultations.create', compact('ticket', 'patient', 'appointment', 'patients', 'doctors'));
     }
 
     public function store(Request $request)

@@ -1,49 +1,44 @@
 <x-auth-layout>
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-0">Invoice {{ $invoice->invoice_number }}</h5>
-            <small class="text-muted">{{ fmt_datetime($invoice->created_at) }}</small>
-        </div>
-        <div class="d-flex gap-2">
-            @if ($invoice->isDraft())
-                @can('invoice.edit')
-                    <form method="POST" action="{{ route('invoices.issue', $invoice) }}">
-                        @csrf
-                        <button class="btn btn-success btn-sm" onclick="return confirm('Issue this invoice?')">
-                            <i class="bi bi-send me-1"></i> Issue Invoice
-                        </button>
-                    </form>
-                @endcan
-            @endif
-            @if ($invoice->canReceivePayment())
-                @can('payment.create')
-                    <a href="{{ route('payments.create', ['invoice_id' => $invoice->id]) }}" class="btn btn-success btn-sm">
-                        <i class="bi bi-cash me-1"></i> Record Payment
-                    </a>
-                @endcan
-            @endif
-            @can('payment.view')
-                @if ($invoice->payments->isNotEmpty())
-                    <a href="{{ route('payments.receipt', $invoice->payments->latest()->first()) }}" class="btn btn-outline-info btn-sm">
-                        <i class="bi bi-receipt me-1"></i> Receipt
-                    </a>
-                @endif
+    <x-page-header title="Invoice {{ $invoice->invoice_number }}" subtitle="{{ $invoice->patient?->name ?? '' }} &middot; {{ fmt_datetime($invoice->created_at) }}"
+        :breadcrumbs="[['label' => 'Invoices', 'url' => route('invoices.index')], ['label' => $invoice->invoice_number]]">
+        @if ($invoice->isDraft())
+            @can('invoice.edit')
+                <form method="POST" action="{{ route('invoices.issue', $invoice) }}" class="d-inline">
+                    @csrf
+                    <button class="btn btn-success btn-sm d-inline-flex align-items-center" onclick="return confirm('Issue this invoice?')">
+                        <i class="bi bi-send me-1"></i> Issue Invoice
+                    </button>
+                </form>
             @endcan
-            @if ($invoice->isDraft() || $invoice->isIssued() || $invoice->isPartiallyPaid())
-                @can('invoice.cancel')
-                    <form method="POST" action="{{ route('invoices.cancel', $invoice) }}">
-                        @csrf
-                        <button class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel this invoice?')">
-                            <i class="bi bi-x-circle me-1"></i> Cancel
-                        </button>
-                    </form>
-                @endcan
+        @endif
+        @if ($invoice->canReceivePayment())
+            @can('payment.create')
+                <a href="{{ route('payments.create', ['invoice_id' => $invoice->id]) }}" class="btn btn-success btn-sm d-inline-flex align-items-center">
+                    <i class="bi bi-cash me-1"></i> Record Payment
+                </a>
+            @endcan
+        @endif
+        @can('payment.view')
+            @if ($invoice->payments->isNotEmpty())
+                <a href="{{ route('payments.receipt', $invoice->payments->latest()->first()) }}" class="btn btn-outline-info btn-sm d-inline-flex align-items-center">
+                    <i class="bi bi-receipt me-1"></i> Receipt
+                </a>
             @endif
-            <a href="{{ route('invoices.index') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Back
-            </a>
-        </div>
-    </div>
+        @endcan
+        @if ($invoice->isDraft() || $invoice->isIssued() || $invoice->isPartiallyPaid())
+            @can('invoice.cancel')
+                <form method="POST" action="{{ route('invoices.cancel', $invoice) }}" class="d-inline">
+                    @csrf
+                    <button class="btn btn-outline-danger btn-sm d-inline-flex align-items-center" onclick="return confirm('Cancel this invoice?')">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                </form>
+            @endcan
+        @endif
+        <a href="{{ route('invoices.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </x-page-header>
 
     <div class="row">
         <div class="col-lg-8">

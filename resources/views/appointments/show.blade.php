@@ -1,13 +1,17 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-0">Appointment Details</h4>
-            <small class="text-muted">{{ $appointment->appointment_number }}</small>
-        </div>
-        <a href="{{ route('appointments.index') }}" class="btn btn-outline-secondary">
+    <x-page-header title="Appointment Details" subtitle="{{ $appointment->appointment_number }}"
+        :breadcrumbs="[['label' => 'Appointments', 'url' => route('appointments.index')], ['label' => $appointment->appointment_number]]">
+        @if ($appointment->isScheduled())
+            @can('appointment.edit')
+                <a href="{{ route('appointments.edit', $appointment) }}" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center">
+                    <i class="bi bi-pencil me-1"></i> Reschedule
+                </a>
+            @endcan
+        @endif
+        <a href="{{ route('appointments.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
             <i class="bi bi-arrow-left me-1"></i> Back to List
         </a>
-    </div>
+    </x-page-header>
 
     <div class="row">
         <div class="col-lg-8">

@@ -1,125 +1,59 @@
 <x-auth-layout>
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
+    <x-page-header title="Create Role" subtitle="Define a new role and its permissions"
+        :breadcrumbs="[['label' => 'Roles & Permissions', 'url' => route('roles.index')], ['label' => 'Create Role']]">
+        <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back to Roles
+        </a>
+    </x-page-header>
 
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Create New Role</h5>
-                    </div>
-
-                    <div class="card-body">
-                        <form method="POST" action="{{ route('roles.store') }}">
-                            @csrf
-
-                            <!-- Role Name -->
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">Role Name</label>
-                                <input type="text" name="name" class="form-control"
-                                    placeholder="Doctor, Nurse, Receptionist" required>
-                            </div>
-
-                            <!-- Permissions -->
-                            @foreach ($permissions as $group => $items)
-                                <div class="card mb-3 border">
-
-                                    <!-- Group Header + Check All -->
-                                    <div
-                                        class="card-header bg-light fw-semibold text-uppercase d-flex justify-content-between align-items-center">
-                                        <span>{{ $group }} Permissions</span>
-
-                                        <div class="form-check">
-                                            <input class="form-check-input check-all" type="checkbox"
-                                                data-group="{{ $group }}" id="checkAll-{{ $group }}">
-                                            <label class="form-check-label text-capitalize"
-                                                for="checkAll-{{ $group }}">
-                                                Check All
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <!-- Permission Items -->
-                                    <div class="card-body">
-                                        <div class="row">
-                                            @foreach ($items as $permission)
-                                                <div class="col-md-4 col-sm-6 mb-2">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input permission-checkbox"
-                                                            type="checkbox" name="permissions[]"
-                                                            value="{{ $permission->name }}"
-                                                            data-group="{{ $group }}"
-                                                            id="{{ $permission->name }}">
-
-                                                        <label class="form-check-label" for="{{ $permission->name }}">
-                                                            {{ str_replace($group . '.', '', $permission->name) }}
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-
-                                </div>
-                            @endforeach
-
-                            <!-- Submit -->
-                            <div class="text-end mt-4">
-                                <button class="btn btn-primary px-4">
-                                    Create Role
-                                </button>
-                                <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary">
-                                    Cancel
-                                </a>
-                            </div>
-
-                        </form>
-                    </div>
-                </div>
-
+    @if ($errors->any())
+        <div class="alert alert-danger border-0 shadow-sm d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-exclamation-octagon fs-5 mt-1"></i>
+            <div>
+                <strong class="d-block mb-1">Please fix the following errors:</strong>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         </div>
-    </div>
+    @endif
 
-    <!-- ✅ CHECK ALL + AUTO CHECK SCRIPT -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    <form method="POST" action="{{ route('roles.store') }}" novalidate>
+        @csrf
 
-            // 1️⃣ Check All → toggle all permissions in group
-            document.querySelectorAll('.check-all').forEach(checkAll => {
-                checkAll.addEventListener('change', function() {
-                    const group = this.dataset.group;
-                    const checked = this.checked;
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Role Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="col-md-6">
+                    <label class="form-label">Role Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                        placeholder="Doctor, Nurse, Receptionist" value="{{ old('name') }}" required>
+                    @error('name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">Use lowercase with hyphens (e.g., <code>front-desk</code>).</div>
+                </div>
+            </div>
+        </div>
 
-                    document.querySelectorAll(
-                        '.permission-checkbox[data-group="' + group + '"]'
-                    ).forEach(cb => {
-                        cb.checked = checked;
-                    });
-                });
-            });
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="bi bi-shield-check me-2"></i>Permissions</h6>
+            </div>
+            <div class="card-body">
+                @include('roles.partials.permissions', ['selected' => []])
+            </div>
+        </div>
 
-            // 2️⃣ Individual permission → auto toggle Check All
-            document.querySelectorAll('.permission-checkbox').forEach(permission => {
-                permission.addEventListener('change', function() {
-                    const group = this.dataset.group;
-
-                    const permissions = document.querySelectorAll(
-                        '.permission-checkbox[data-group="' + group + '"]'
-                    );
-
-                    const allChecked = Array.from(permissions)
-                        .every(cb => cb.checked);
-
-                    const checkAll = document.querySelector(
-                        '.check-all[data-group="' + group + '"]'
-                    );
-
-                    if (checkAll) {
-                        checkAll.checked = allChecked;
-                    }
-                });
-            });
-
-        });
-    </script>
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary">Cancel</a>
+            <button class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i> Create Role
+            </button>
+        </div>
+    </form>
 </x-auth-layout>

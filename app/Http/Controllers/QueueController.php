@@ -17,19 +17,41 @@ class QueueController extends Controller
     {
         Gate::authorize('queue.view');
 
-        $query = QueueTicket::with(['patient', 'doctor', 'appointment'])
-            ->whereDate('queue_date', now()->toDateString());
+        $tickets = QueueTicket::with(['patient', 'doctor', 'appointment'])
+            ->whereDate('queue_date', now()->toDateString())
+            ->get();
 
         if ($request->filled('doctor_id')) {
-            $query->where('doctor_id', $request->doctor_id);
+            $tickets = $tickets->where('doctor_id', (int) $request->doctor_id);
         }
 
-        $tickets = $query->get()
-            ->groupBy('status');
+        $statusOrder = ['waiting' => 0, 'called' => 1, 'in_consultation' => 2, 'cancelled' => 3, 'completed' => 4];
+
+        $ordered = $tickets->sortBy(fn ($ticket) => [
+            $statusOrder[$ticket->status] ?? 9,
+            $ticket->checked_in_at?->timestamp ?? 0,
+            $ticket->ticket_number,
+        ]);
+
+        $tickets = $ordered->groupBy('status');
+
+        // Current queue position (1-based) for waiting patients.
+        $waiting = collect($tickets->get('waiting', []))->values();
+        $waiting->each(function ($ticket, $index) {
+            $ticket->position = $index + 1;
+        });
 
         $doctors = Doctor::where('is_available', true)->orderBy('name')->get();
 
-        return view('queue.index', compact('tickets', 'doctors'));
+        $counts = [
+            'waiting' => $tickets->get('waiting', collect())->count(),
+            'called' => $tickets->get('called', collect())->count(),
+            'in_consultation' => $tickets->get('in_consultation', collect())->count(),
+            'cancelled' => $tickets->get('cancelled', collect())->count(),
+            'completed' => $tickets->get('completed', collect())->count(),
+        ];
+
+        return view('queue.index', compact('tickets', 'doctors', 'counts'));
     }
 
     public function checkinForm(Request $request)

@@ -84,6 +84,15 @@ class StaffController extends Controller
             ->with('success', 'Staff member created successfully');
     }
 
+    public function show(User $staff)
+    {
+        Gate::authorize('staff.view');
+
+        $staff->load(['roles', 'doctor']);
+
+        return view('staff.show', compact('staff'));
+    }
+
     public function edit(User $staff)
     {
         Gate::authorize('staff.edit');

@@ -12,7 +12,7 @@ class RoleController extends Controller
     public function index()
     {
         Gate::authorize('role.view');
-        $roles = Role::with('permissions')->get();
+        $roles = Role::with('permissions')->withCount('users')->get();
         return view('roles.index', compact('roles'));
     }
 

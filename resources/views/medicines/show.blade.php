@@ -1,35 +1,30 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-0">{{ $medicine->name }}</h4>
-            <small class="text-muted">{{ $medicine->generic_name ?? '' }}</small>
-        </div>
-        <div class="d-flex gap-2">
-            @can('inventory.stock_in')
-                <a href="{{ route('inventory.stock-in.form', $medicine) }}" class="btn btn-success btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i> Stock In
-                </a>
-            @endcan
-            @can('inventory.stock_out')
-                <a href="{{ route('inventory.stock-out.form', $medicine) }}" class="btn btn-warning btn-sm">
-                    <i class="bi bi-dash-circle me-1"></i> Stock Out
-                </a>
-            @endcan
-            @can('inventory.adjust')
-                <a href="{{ route('inventory.adjust.form', $medicine) }}" class="btn btn-secondary btn-sm">
-                    <i class="bi bi-gear me-1"></i> Adjust
-                </a>
-            @endcan
-            @can('medicine.edit')
-                <a href="{{ route('medicines.edit', $medicine) }}" class="btn btn-warning">
-                    <i class="bi bi-pencil me-1"></i> Edit
-                </a>
-            @endcan
-            <a href="{{ route('medicines.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back
+    <x-page-header title="{{ $medicine->name }}" subtitle="{{ $medicine->generic_name ?? 'Medicine details' }}"
+        :breadcrumbs="[['label' => 'Medicines', 'url' => route('medicines.index')], ['label' => $medicine->name]]">
+        @can('inventory.stock_in')
+            <a href="{{ route('inventory.stock-in.form', $medicine) }}" class="btn btn-success btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-plus-circle me-1"></i> Stock In
             </a>
-        </div>
-    </div>
+        @endcan
+        @can('inventory.stock_out')
+            <a href="{{ route('inventory.stock-out.form', $medicine) }}" class="btn btn-warning btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-dash-circle me-1"></i> Stock Out
+            </a>
+        @endcan
+        @can('inventory.adjust')
+            <a href="{{ route('inventory.adjust.form', $medicine) }}" class="btn btn-secondary btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-gear me-1"></i> Adjust
+            </a>
+        @endcan
+        @can('medicine.edit')
+            <a href="{{ route('medicines.edit', $medicine) }}" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+        @endcan
+        <a href="{{ route('medicines.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </x-page-header>
 
     <div class="row">
         <div class="col-lg-8">

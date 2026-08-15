@@ -1,62 +1,160 @@
-<x-auth-layout>
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Inventory Dashboard</h5>
-        <div class="btn-group btn-group-sm">
-            <a href="{{ route('inventory.dashboard') }}" class="btn btn-primary">Dashboard</a>
-            <a href="{{ route('inventory.index') }}" class="btn btn-outline-primary">Medicine List</a>
-            <a href="{{ route('inventory.movements') }}" class="btn btn-outline-primary">Movements</a>
-        </div>
-    </div>
+﻿<x-auth-layout>
+    <x-page-header title="Inventory Dashboard" subtitle="Stock overview across the pharmacy"
+        :breadcrumbs="[['label' => 'Inventory']]">
+        @include('inventory.partials.nav', ['active' => 'dashboard'])
+    </x-page-header>
 
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
+    {{-- KPI cards --}}
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:48px;height:48px;">
-                    <i class="bi bi-capsule text-primary fs-5"></i>
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label text-muted mb-1">Total Medicines</div>
+                            <h4 class="stat-value mb-0">{{ $totalMedicines }}</h4>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10">
+                            <i class="bi bi-capsule text-primary"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="fs-3 fw-bold text-primary">{{ $totalMedicines }}</div>
-                <div class="text-muted small">Total Medicines</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:48px;height:48px;">
-                    <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label text-muted mb-1">Stock Value</div>
+                            <h5 class="stat-value mb-0">${{ number_format($totalStockValue, 2) }}</h5>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10">
+                            <i class="bi bi-cash-stack text-success"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="fs-3 fw-bold text-warning">{{ $lowStock }}</div>
-                <div class="text-muted small">Low Stock</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:48px;height:48px;">
-                    <i class="bi bi-x-circle text-danger fs-5"></i>
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label text-muted mb-1">Low Stock</div>
+                            <h5 class="stat-value mb-0 {{ $lowStock > 0 ? 'text-warning' : '' }}">{{ $lowStock }}</h5>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10">
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="fs-3 fw-bold text-danger">{{ $outOfStock }}</div>
-                <div class="text-muted small">Out of Stock</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center p-3">
-                <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:48px;height:48px;">
-                    <i class="bi bi-clock-history text-secondary fs-5"></i>
+            <div class="card stat-card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label text-muted mb-1">Expired / Expiring</div>
+                            <h5 class="stat-value mb-0 {{ $expired + $expiringSoon > 0 ? 'text-danger' : '' }}">{{ $expired + $expiringSoon }}</h5>
+                        </div>
+                        <div class="stat-icon bg-danger bg-opacity-10">
+                            <i class="bi bi-clock-history text-danger"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="fs-3 fw-bold text-secondary">{{ $expired + $expiringSoon }}</div>
-                <div class="text-muted small">Expired / Expiring</div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-2">
+    <div class="row g-4 mb-4">
+        {{-- Low stock --}}
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Low Stock Medicines</h6>
+                    <a href="{{ route('inventory.index', ['stock_status' => 'low']) }}" class="btn btn-sm btn-outline-warning">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    @forelse ($lowStockMedicines as $medicine)
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                            <div class="min-w-0">
+                                <a href="{{ route('medicines.show', $medicine) }}" class="fw-medium text-truncate d-block">{{ $medicine->name }}</a>
+                                <small class="text-muted">Min level: {{ $medicine->minimum_stock_level ?? 0 }}</small>
+                            </div>
+                            <span class="badge {{ $medicine->stock_quantity <= 0 ? 'bg-danger' : 'bg-warning text-dark' }}">
+                                {{ $medicine->stock_quantity <= 0 ? 'Out of stock' : $medicine->stock_quantity . ' left' }}
+                            </span>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                            <small>All medicines are sufficiently stocked</small>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Expiring soon --}}
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0"><i class="bi bi-clock text-info me-2"></i>Expiring Soon</h6>
+                    <a href="{{ route('inventory.index', ['expiry_status' => 'expiring']) }}" class="btn btn-sm btn-outline-info">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    @forelse ($expiringMedicines as $medicine)
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                            <div class="min-w-0">
+                                <a href="{{ route('medicines.show', $medicine) }}" class="fw-medium text-truncate d-block">{{ $medicine->name }}</a>
+                                <small class="text-muted">Stock: {{ $medicine->stock_quantity }}</small>
+                            </div>
+                            <span class="badge bg-info text-dark">{{ fmt_date($medicine->expiry_date) }}</span>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-calendar-check fs-3 d-block mb-2 text-success"></i>
+                            <small>No medicines expiring in the next 30 days</small>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Expired --}}
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0"><i class="bi bi-x-octagon text-danger me-2"></i>Expired</h6>
+                    <a href="{{ route('inventory.index', ['expiry_status' => 'expired']) }}" class="btn btn-sm btn-outline-danger">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    @forelse ($expiredMedicines as $medicine)
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                            <div class="min-w-0">
+                                <a href="{{ route('medicines.show', $medicine) }}" class="fw-medium text-truncate d-block">{{ $medicine->name }}</a>
+                                <small class="text-muted">Stock: {{ $medicine->stock_quantity }}</small>
+                            </div>
+                            <span class="badge bg-danger">{{ fmt_date($medicine->expiry_date) }}</span>
+                        </div>
+                    @empty
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                            <small>No expired medicines</small>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Recent movements --}}
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
             <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Stock Movements</h6>
+            <a href="{{ route('inventory.movements') }}" class="btn btn-sm btn-outline-primary">View All</a>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -68,40 +166,41 @@
                             <th>Type</th>
                             <th class="text-end">Quantity</th>
                             <th class="text-end">Balance</th>
-                            <th>By</th>
+                            <th class="d-none d-md-table-cell">By</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($recentMovements as $movement)
                             <tr>
                                 <td>{{ fmt_date($movement->movement_date) }}</td>
-                                <td>{{ $movement->medicine->name ?? 'Deleted' }}</td>
                                 <td>
-                                    <span class="badge bg-{{ match($movement->type) {
+                                    <span class="fw-medium">{{ $movement->medicine->name ?? 'Deleted' }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ match ($movement->type) {
                                         'opening' => 'info',
                                         'stock_in' => 'success',
                                         'stock_out' => 'warning',
-                                        'adjustment' => 'secondary',
-                                        default => 'secondary'
+                                        default => 'secondary',
                                     } }}">
-                                        {{ $movement->type_label }}
+                                        <span class="status-dot"></span>{{ $movement->type_label }}
                                     </span>
                                 </td>
                                 <td class="text-end">
                                     @if ($movement->quantity > 0)
-                                        <span class="text-success">+{{ $movement->quantity }}</span>
+                                        <span class="text-success fw-semibold">+{{ $movement->quantity }}</span>
                                     @else
-                                        <span class="text-danger">{{ $movement->quantity }}</span>
+                                        <span class="text-danger fw-semibold">{{ $movement->quantity }}</span>
                                     @endif
                                 </td>
-                                <td class="text-end">{{ $movement->balance_after }}</td>
-                                <td>{{ $movement->performer->name ?? 'System' }}</td>
+                                <td class="text-end fw-semibold">{{ $movement->balance_after }}</td>
+                                <td class="d-none d-md-table-cell">{{ $movement->performer->name ?? 'System' }}</td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center text-muted py-4">
                                     <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
-                                    No recent movements.
+                                    No stock movements recorded yet.
                                 </td>
                             </tr>
                         @endforelse

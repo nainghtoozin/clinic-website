@@ -60,8 +60,9 @@ class AppointmentController extends Controller
         $appointments = $query->latest('date')->latest('time')->paginate(15)->withQueryString();
 
         $doctors = \App\Models\Doctor::orderBy('name')->get();
+        $departments = Department::orderBy('name')->get();
 
-        return view('appointments.index', compact('appointments', 'doctors'));
+        return view('appointments.index', compact('appointments', 'doctors', 'departments'));
     }
 
     public function create(Request $request)
@@ -76,6 +77,42 @@ class AppointmentController extends Controller
         $selectedDoctor = $request->doctor_id;
 
         return view('appointments.create', compact('patients', 'doctors', 'departments', 'selectedPatient', 'selectedDoctor'));
+    }
+
+    public function availableSlots(Request $request)
+    {
+        Gate::authorize('appointment.view');
+
+        $validated = $request->validate([
+            'doctor_id' => 'required|integer|exists:doctors,id',
+            'date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'duration' => 'nullable|integer|min:15|max:180',
+        ]);
+
+        $doctor = Doctor::findOrFail($validated['doctor_id']);
+        $date = \Carbon\Carbon::parse($validated['date']);
+        $duration = $validated['duration'] ?? \App\Services\AppointmentAvailabilityService::DEFAULT_DURATION_MINUTES;
+
+        $workingDay = $this->availability->isWorkingDay($doctor, $date);
+        $hours = $this->availability->workingHours($doctor);
+        $slots = $workingDay && $hours
+            ? $this->availability->availableSlots($doctor, $date, $duration)
+            : [];
+
+        $message = 'No appointment times are available for this doctor on this date.';
+        if (! $workingDay) {
+            $message = 'This doctor does not work on this date. Please choose another day.';
+        } elseif ($hours === null) {
+            $message = 'This doctor does not have a working schedule set up.';
+        }
+
+        return response()->json([
+            'date' => $date->toDateString(),
+            'working_day' => $workingDay,
+            'working_hours' => $hours,
+            'slots' => $slots,
+            'message' => count($slots) ? null : $message,
+        ]);
     }
 
     public function store(Request $request)
@@ -161,6 +198,11 @@ class AppointmentController extends Controller
         $patients = Patient::where('status', 'active')->orderBy('name')->get();
         $doctors = Doctor::where('is_available', true)->with('department')->orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
+
+        // Keep the current doctor in the list even if they became unavailable.
+        if ($appointment->doctor && $doctors->doesntContain('id', $appointment->doctor->id)) {
+            $doctors = $doctors->push($appointment->doctor->loadMissing('department'));
+        }
 
         return view('appointments.edit', compact('appointment', 'patients', 'doctors', 'departments'));
     }

@@ -1,20 +1,15 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-0">Prescription {{ $prescription->prescription_number }}</h4>
-            <small class="text-muted">{{ fmt_date($prescription->prescribed_date) }}</small>
-        </div>
-        <div class="d-flex gap-2">
-            @can('prescription.edit')
-                <a href="{{ route('prescriptions.edit', $prescription) }}" class="btn btn-warning">
-                    <i class="bi bi-pencil me-1"></i> Edit
-                </a>
-            @endcan
-            <a href="{{ route('prescriptions.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back
+    <x-page-header title="Prescription {{ $prescription->prescription_number }}" subtitle="{{ $prescription->patient?->name ?? '' }} &middot; {{ fmt_date($prescription->prescribed_date) }}"
+        :breadcrumbs="[['label' => 'Prescriptions', 'url' => route('prescriptions.index')], ['label' => $prescription->prescription_number]]">
+        @can('prescription.edit')
+            <a href="{{ route('prescriptions.edit', $prescription) }}" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-pencil me-1"></i> Edit
             </a>
-        </div>
-    </div>
+        @endcan
+        <a href="{{ route('prescriptions.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </x-page-header>
 
     <div class="row">
         <div class="col-lg-8">

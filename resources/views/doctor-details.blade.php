@@ -5,15 +5,19 @@
             {{-- Header --}}
             <div class="modal-header bg-primary text-white">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ $doctor->profile_image
-                        ? asset('storage/' . $doctor->profile_image)
-                        : 'https://ui-avatars.com/api/?name=' . urlencode($doctor->name) }}"
-                        class="rounded-circle border border-2 border-white" width="60" height="60" alt="Doctor">
+                    @if ($doctor->profile_image)
+                        <img src="{{ Storage::url($doctor->profile_image) }}"
+                            class="rounded-circle border border-2 border-white" width="60" height="60" style="object-fit:cover;" alt="{{ $doctor->name }}">
+                    @else
+                        <span class="rounded-circle border border-2 border-white bg-white text-primary d-inline-flex
+                            align-items-center justify-content-center fw-semibold"
+                            style="width:60px;height:60px;">{{ initials($doctor->name) }}</span>
+                    @endif
 
                     <div>
                         <h5 class="mb-0 fw-bold">{{ $doctor->name }}</h5>
                         <small class="opacity-75">
-                            {{ $doctor->title ?? 'Medical Specialist' }}
+                            {{ $doctor->title ?? $doctor->role ?? 'Medical Specialist' }}
                         </small>
                     </div>
                 </div>

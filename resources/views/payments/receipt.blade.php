@@ -25,8 +25,24 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <div class="text-center mb-4">
-                    <h4 class="mb-0">Clinic Name</h4>
-                    <small class="text-muted">Clinic Address & Contact Info</small>
+                    <h4 class="mb-0">{{ setting('site.site_name') ?: config('app.name', 'Clinic') }}</h4>
+                    <small class="text-muted d-block">
+                        @if (setting('site.address'))
+                            {{ setting('site.address') }}<br>
+                        @endif
+                        @if (setting('site.phone'))
+                            Phone: {{ setting('site.phone') }}
+                        @endif
+                        @if (setting('site.phone') && setting('site.email'))
+                            &middot;
+                        @endif
+                        @if (setting('site.email'))
+                            {{ setting('site.email') }}
+                        @endif
+                        @if (!setting('site.address') && !setting('site.phone') && !setting('site.email'))
+                            Clinic Address &amp; Contact Info
+                        @endif
+                    </small>
                 </div>
 
                 <hr>

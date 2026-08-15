@@ -165,8 +165,15 @@
                             <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-cardiology">
                                 <article class="doctor-card h-100">
                                     <figure class="doctor-media">
-                                        <img src="{{ $doctor->profile_image ? asset('storage/' . $doctor->profile_image) : 'https://ui-avatars.com/api/?name=' . urlencode($doctor->name) }}"
-                                            class="img-fluid" alt="{{ $doctor->name }}" loading="lazy">
+                                        @if ($doctor->profile_image)
+                                            <img src="{{ Storage::url($doctor->profile_image) }}"
+                                                class="img-fluid" alt="{{ $doctor->name }}" loading="lazy">
+                                        @else
+                                            <div class="doctor-media-placeholder"
+                                                style="width:100%;height:260px;display:flex;align-items:center;justify-content:center;font-size:4rem;font-weight:700;color:#0d6efd;background:linear-gradient(135deg,#e3edff 0%,#d0e1ff 100%);">
+                                                {{ initials($doctor->name) }}
+                                            </div>
+                                        @endif
                                         @if ($doctor->is_available === true)
                                             <div class="badge bg-success">Active</div>
                                         @else

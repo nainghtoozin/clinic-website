@@ -1,13 +1,10 @@
 <x-auth-layout>
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <div>
-            <h5 class="mb-0">Dispense Prescription</h5>
-            <small class="text-muted">{{ $prescription->prescription_number }}</small>
-        </div>
-        <a href="{{ route('prescriptions.show', $prescription) }}" class="btn btn-outline-secondary btn-sm">
+    <x-page-header title="Dispense Prescription" subtitle="{{ $prescription->patient?->name ?? '' }} &middot; {{ $prescription->prescription_number }}"
+        :breadcrumbs="[['label' => 'Prescriptions', 'url' => route('prescriptions.index')], ['label' => 'Dispense']]">
+        <a href="{{ route('prescriptions.show', $prescription) }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
             <i class="bi bi-arrow-left me-1"></i> Back
         </a>
-    </div>
+    </x-page-header>
 
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">

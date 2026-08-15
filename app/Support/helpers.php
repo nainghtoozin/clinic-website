@@ -144,3 +144,23 @@ if (!function_exists('fmt_today')) {
         return Carbon::now(user_timezone())->format(user_date_format());
     }
 }
+
+/**
+ * Initials for avatar placeholders (e.g. "Dr. John Smith" => "JS").
+ */
+if (!function_exists('initials')) {
+    function initials(?string $name): string
+    {
+        if (blank($name)) {
+            return '?';
+        }
+
+        $parts = array_values(array_filter(
+            preg_split('/\s+/', preg_replace('/^Dr\.?\s+/i', '', trim($name))) ?: []
+        ));
+
+        $parts = array_slice($parts, 0, 2);
+
+        return mb_strtoupper(collect($parts)->map(fn (string $part) => mb_substr($part, 0, 1))->join(''));
+    }
+}
