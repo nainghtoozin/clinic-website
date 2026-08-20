@@ -49,6 +49,9 @@ return [
         'preferences' => 'Preferences',
         'security' => 'Security',
         'account' => 'Account',
+        'account_settings' => 'Account Settings',
+        'profile_information' => 'Profile Information',
+        'profile_information_help' => 'Update your account\'s profile information.',
         'saved' => 'Your settings were saved.',
         'profile_managed' => 'Your name, contact details and email verification are managed from the profile page.',
         'go_to_profile' => 'Go to Profile',
@@ -99,6 +102,16 @@ return [
         'profile_updated' => 'Profile updated successfully.',
         'photo_uploaded' => 'Photo uploaded.',
         'photo_removed' => 'Photo removed.',
+    ],
+
+    // Dashboard
+    'dashboard' => [
+        'date_range_invalid' => 'Start date cannot be after the end date.',
+    ],
+
+    // Inventory
+    'inventory' => [
+        'date_range_invalid' => 'Start date cannot be after the end date.',
     ],
 
     // Security / Change password

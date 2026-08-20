@@ -1,22 +1,65 @@
-﻿<x-auth-layout>
+<x-auth-layout>
 
-    <x-page-header title="Today's Overview" subtitle="Overview of today's activity at the clinic"
-        :breadcrumbs="[['label' => 'Today\'s Overview']]">
-        @can('appointment.create')
-            <a href="{{ route('appointments.create') }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
-                <i class="bi bi-plus-lg me-1"></i> New Appointment
-            </a>
-        @endcan
+    @php
+        $todaySuffix = $isToday ? ' Today' : '';
+        $pageTitle = $isToday ? "Today's Overview" : 'Daily Overview';
+        $pageSubtitle = $isToday
+            ? "Overview of today's activity at the clinic"
+            : "Overview of clinic activity from {$dateFromLabel} to {$dateToLabel}";
+        $presets = [
+            'today' => 'Today',
+            'yesterday' => 'Yesterday',
+            'this_week' => 'This Week',
+            'this_month' => 'This Month',
+        ];
+    @endphp
+
+    <x-page-header :title="$pageTitle" :subtitle="$pageSubtitle"
+        :breadcrumbs="[['label' => $pageTitle]]">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <form method="GET" action="{{ route('dashboard') }}" class="d-flex flex-wrap align-items-center gap-2" role="search">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Date range presets">
+                    @foreach ($presets as $key => $label)
+                        <a href="{{ route('dashboard', ['period' => $key]) }}"
+                            class="btn {{ $selectedPeriod === $key ? 'btn-primary' : 'btn-outline-primary' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+                <div class="input-group input-group-sm" style="width:auto;">
+                    <span class="input-group-text text-muted">From</span>
+                    <input type="date" name="date_from" value="{{ old('date_from', $dateFrom) }}" class="form-control"
+                        aria-label="Start date" style="width: 150px;">
+                    <span class="input-group-text"><i class="bi bi-arrow-right"></i></span>
+                    <span class="input-group-text text-muted">To</span>
+                    <input type="date" name="date_to" value="{{ old('date_to', $dateTo) }}" class="form-control"
+                        aria-label="End date" style="width: 150px;">
+                    <button type="submit" class="btn btn-primary" aria-label="Apply date range"><i class="bi bi-check2"></i></button>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary" title="Reset to today"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+            @can('appointment.create')
+                <a href="{{ route('appointments.create') }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                    <i class="bi bi-plus-lg me-1"></i> New Appointment
+                </a>
+            @endcan
+        </div>
     </x-page-header>
+
+    @error('date_range')
+        <div class="alert alert-danger py-2 d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> {{ $message }}
+        </div>
+    @enderror
 
     <!-- KPI Cards -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stat-label text-muted mb-1">Appointments Today</div>
+                            <div class="stat-label text-muted mb-1">Appointments{{ $todaySuffix }}</div>
                             <h4 class="stat-value mb-0">{{ $todayAppointments }}</h4>
                         </div>
                         <div class="stat-icon bg-primary bg-opacity-10">
@@ -27,7 +70,7 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -42,7 +85,7 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -57,11 +100,11 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stat-label text-muted mb-1">Patients Today</div>
+                            <div class="stat-label text-muted mb-1">Patients{{ $todaySuffix }}</div>
                             <h4 class="stat-value mb-0">{{ $todayNewPatients }}</h4>
                         </div>
                         <div class="stat-icon bg-info bg-opacity-10">
@@ -76,7 +119,7 @@
     <!-- Overall metrics -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -91,7 +134,7 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -106,7 +149,7 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -121,11 +164,11 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stat-label text-muted mb-1">Prescriptions Today</div>
+                            <div class="stat-label text-muted mb-1">Prescriptions{{ $todaySuffix }}</div>
                             <h5 class="stat-value mb-0">{{ $prescriptionsToday }}</h5>
                         </div>
                         <div class="stat-icon bg-secondary bg-opacity-10">
@@ -140,11 +183,11 @@
     @can('report.financial')
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-4">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stat-label text-muted mb-1">Invoiced Today</div>
+                            <div class="stat-label text-muted mb-1">Invoiced{{ $todaySuffix }}</div>
                             <h5 class="stat-value mb-0">{{ number_format($todayInvoiced, 2) }}</h5>
                         </div>
                         <div class="stat-icon bg-primary bg-opacity-10">
@@ -155,11 +198,11 @@
             </div>
         </div>
         <div class="col-6 col-md-4">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="stat-label text-muted mb-1">Paid Today</div>
+                            <div class="stat-label text-muted mb-1">Paid{{ $todaySuffix }}</div>
                             <h5 class="stat-value mb-0 text-success">{{ number_format($todayPaid, 2) }}</h5>
                         </div>
                         <div class="stat-icon bg-success bg-opacity-10">
@@ -170,7 +213,7 @@
             </div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="card stat-card shadow-sm border-0">
+            <div class="card stat-card shadow-sm">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -191,9 +234,9 @@
     <div class="row g-4 mb-4">
         <!-- Today's Appointments -->
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                    <h6 class="mb-0 fw-semibold">Today's Appointments</h6>
+                    <h6 class="mb-0 fw-semibold">{{ $isToday ? "Today's Appointments" : 'Appointments' }}</h6>
                     <a href="{{ route('appointments.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body p-0">
@@ -244,7 +287,9 @@
                                     <tr>
                                         <td colspan="4" class="text-center text-muted py-4">
                                             <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
-                                            No appointments scheduled for today
+                                            {{ $isSingleDay
+                                                ? ($isToday ? 'No appointments scheduled for today' : 'No appointments scheduled for ' . $dateFromLabel)
+                                                : 'No appointments scheduled in this date range' }}
                                         </td>
                                     </tr>
                                 @endforelse
@@ -257,7 +302,7 @@
 
         <!-- Queue Status -->
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                     <h6 class="mb-0 fw-semibold">Queue</h6>
                     <a href="{{ route('queue.index') }}" class="btn btn-sm btn-outline-primary">Open</a>
@@ -287,7 +332,7 @@
     <div class="row g-4 mb-4">
         <!-- Appointment Status -->
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm">
                 <div class="card-header bg-white py-3">
                     <h6 class="mb-0 fw-semibold">Appointments by Status</h6>
                 </div>
@@ -318,9 +363,10 @@
 
         <!-- Doctor Summary -->
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-semibold">Doctors Today</h6>
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0 fw-semibold">Doctors{{ $todaySuffix }}</h6>
+                    <a href="{{ route('doctors.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body p-0">
                     @forelse($doctorSummary as $doctor)
@@ -344,7 +390,9 @@
                     @empty
                         <div class="text-center text-muted py-4">
                             <i class="bi bi-person-x fs-3 d-block mb-2"></i>
-                            No doctors on duty today
+                            {{ $isSingleDay
+                                ? ($isToday ? 'No doctors on duty today' : 'No doctors on duty on ' . $dateFromLabel)
+                                : 'No doctors on duty in this date range' }}
                         </div>
                     @endforelse
                 </div>
@@ -354,7 +402,7 @@
         <!-- Inventory Alerts -->
         @can('inventory.view')
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                     <h6 class="mb-0 fw-semibold">Inventory Alerts</h6>
                     <a href="{{ route('inventory.dashboard') }}" class="btn btn-sm btn-outline-primary">View</a>

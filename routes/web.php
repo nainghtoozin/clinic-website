@@ -126,12 +126,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/inventory', [InventoryController::class, 'dashboard'])->name('inventory.dashboard');
     Route::get('/inventory/medicines', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
+    Route::get('/inventory/expiry', [InventoryController::class, 'expiry'])->name('inventory.expiry');
     Route::get('/inventory/medicines/{medicine}/stock-in', [InventoryController::class, 'stockInForm'])->name('inventory.stock-in.form');
     Route::post('/inventory/medicines/{medicine}/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stock-in');
     Route::get('/inventory/medicines/{medicine}/stock-out', [InventoryController::class, 'stockOutForm'])->name('inventory.stock-out.form');
     Route::post('/inventory/medicines/{medicine}/stock-out', [InventoryController::class, 'stockOut'])->name('inventory.stock-out');
     Route::get('/inventory/medicines/{medicine}/adjust', [InventoryController::class, 'adjustForm'])->name('inventory.adjust.form');
     Route::post('/inventory/medicines/{medicine}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+    Route::post('/inventory/batches/{batch}/expire', [InventoryController::class, 'expireBatch'])->name('inventory.batch.expire');
+    Route::delete('/inventory/batches/{batch}', [InventoryController::class, 'destroyBatch'])->name('inventory.batch.destroy');
     Route::get('/inventory/prescriptions/{prescription}/dispense', [InventoryController::class, 'dispenseForm'])->name('inventory.dispense.form');
     Route::post('/inventory/prescriptions/{prescription}/dispense', [InventoryController::class, 'dispense'])->name('inventory.dispense');
 

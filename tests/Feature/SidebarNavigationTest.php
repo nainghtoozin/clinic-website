@@ -93,3 +93,22 @@ test('a guest cannot open settings or roles', function () {
     $this->get(route('user.settings'))->assertRedirect(route('login'));
     $this->get(route('roles.index'))->assertRedirect(route('login'));
 });
+
+test('the sidebar sections are always expanded (no accordion)', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('dashboard.view');
+
+    $html = $this->actingAs($user)->get(route('dashboard'))->assertOk()->getContent();
+
+    // No accordion state or collapsible containers should be present.
+    expect($html)->not->toContain('sidebarAccordion');
+    expect($html)->not->toContain('nav-section-toggle');
+    expect($html)->not->toContain('nav-collapse');
+
+    // Section labels and their menu items are rendered directly (always visible).
+    expect($html)->toContain(e(__('app.nav.section_patients')));
+    expect($html)->toContain(e(__('app.nav.section_clinical')));
+    expect($html)->toContain(e(__('app.nav.section_inventory')));
+    expect($html)->toContain(e(__('app.nav.section_billing')));
+    expect($html)->toContain(e(__('app.nav.section_management')));
+});

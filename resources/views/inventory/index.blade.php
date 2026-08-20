@@ -119,16 +119,23 @@
                             </td>
                             <td class="text-end d-none d-lg-table-cell">{{ $medicine->minimum_stock_level ?? '-' }}</td>
                             <td class="d-none d-lg-table-cell">
-                                @if ($medicine->expiry_date)
-                                    @if ($medicine->isExpired())
-                                        <span class="badge bg-danger">{{ fmt_date($medicine->expiry_date) }}</span>
-                                    @elseif ($medicine->isExpiringSoon())
-                                        <span class="badge bg-warning text-dark">{{ fmt_date($medicine->expiry_date) }}</span>
+                                @php
+                                    $nearestBatch = $medicine->inventoryBatches->first();
+                                    $batchCount = $medicine->inventoryBatches->count();
+                                @endphp
+                                @if ($nearestBatch && $nearestBatch->expiry_date)
+                                    @if ($nearestBatch->isExpired())
+                                        <span class="badge bg-danger">{{ fmt_date($nearestBatch->expiry_date) }}</span>
+                                    @elseif ($nearestBatch->isExpiringSoon())
+                                        <span class="badge bg-warning text-dark">{{ fmt_date($nearestBatch->expiry_date) }}</span>
                                     @else
-                                        {{ fmt_date($medicine->expiry_date) }}
+                                        {{ fmt_date($nearestBatch->expiry_date) }}
                                     @endif
                                 @else
                                     <span class="text-muted">-</span>
+                                @endif
+                                @if ($batchCount > 0)
+                                    <small class="d-block text-muted">{{ $batchCount }} batch(es)</small>
                                 @endif
                             </td>
                             <td>

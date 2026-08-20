@@ -52,20 +52,41 @@
                                         <th>Medicine</th>
                                         <th class="text-end">Prescribed</th>
                                         <th class="text-end">Available</th>
+                                        <th>Batch (optional)</th>
                                         <th class="text-end">Dispense Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($prescription->items as $item)
+                                        @php
+                                            $validBatches = $item->medicine?->inventoryBatches
+                                                ->where('quantity', '>', 0)
+                                                ->filter(fn ($b) => ! $b->isExpired());
+                                            $usable = $validBatches->sum('quantity');
+                                        @endphp
                                         <tr>
                                             <td>
                                                 <strong>{{ $item->medicine->name ?? 'Deleted' }}</strong>
-                                                @if ($item->medicine && $item->medicine->stock_quantity < $item->quantity)
-                                                    <br><small class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Insufficient stock</small>
+                                                @if ($item->medicine && $usable < $item->quantity)
+                                                    <br><small class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Insufficient usable stock</small>
                                                 @endif
                                             </td>
                                             <td class="text-end">{{ $item->quantity }}</td>
-                                            <td class="text-end">{{ $item->medicine->stock_quantity ?? 0 }}</td>
+                                            <td class="text-end">{{ $usable }}</td>
+                                            <td>
+                                                @if ($item->medicine && $validBatches->isNotEmpty())
+                                                    <select name="batch_selections[{{ $item->id }}]" class="form-select form-select-sm">
+                                                        <option value="">Auto (FEFO)</option>
+                                                        @foreach ($validBatches as $batch)
+                                                            <option value="{{ $batch->id }}" {{ old('batch_selections.' . $item->id) == $batch->id ? 'selected' : '' }}>
+                                                                {{ $batch->batch_number }} ({{ $batch->quantity }} &middot; Exp {{ $batch->expiry_date ? fmt_date($batch->expiry_date) : '-' }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                @else
+                                                    <span class="text-muted small">No valid batch</span>
+                                                @endif
+                                            </td>
                                             <td class="text-end">
                                                 <input type="number"
                                                     name="dispensed_quantities[{{ $item->id }}]"
@@ -79,6 +100,11 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="form-text mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Leave batch as <strong>Auto (FEFO)</strong> to dispense from the earliest-expiring valid batch, or pick a specific valid batch.
+                            Expired batches are never dispensed.
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-4">

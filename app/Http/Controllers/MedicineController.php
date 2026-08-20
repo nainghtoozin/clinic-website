@@ -78,9 +78,15 @@ class MedicineController extends Controller
     {
         Gate::authorize('medicine.view');
 
-        $movements = $medicine->stockMovements()->with('performer')->latest('movement_date')->latest('id')->take(10)->get();
+        $movements = $medicine->stockMovements()->with(['performer', 'inventoryBatch'])->latest('movement_date')->latest('id')->take(10)->get();
 
-        return view('medicines.show', compact('medicine', 'movements'));
+        $batches = $medicine->inventoryBatches()
+            ->orderByRaw('expiry_date IS NULL')
+            ->orderBy('expiry_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return view('medicines.show', compact('medicine', 'movements', 'batches'));
     }
 
     public function edit(Medicine $medicine)

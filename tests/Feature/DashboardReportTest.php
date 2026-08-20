@@ -3,11 +3,13 @@
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Consultation;
+use App\Models\Department;
 use App\Models\Doctor;
 use App\Models\Invoice;
 use App\Models\Medicine;
 use App\Models\Payment;
 use App\Models\Patient;
+use App\Models\Prescription;
 use App\Models\QueueTicket;
 use App\Models\StockMovement;
 use App\Models\User;
@@ -137,6 +139,283 @@ test('dashboard unauthorized user cannot access', function () {
 
     $response = $this->actingAs($user)->get(route('dashboard'));
     $response->assertForbidden();
+});
+
+// --- DASHBOARD DATE RANGE FILTER ---
+
+test('dashboard defaults the date filter to today', function () {
+    $today = now()->toDateString();
+
+    $response = $this->actingAs($this->user)->get(route('dashboard'));
+    $response->assertOk();
+    $response->assertSee('name="date_from" value="' . $today . '"', false);
+    $response->assertSee('name="date_to" value="' . $today . '"', false);
+});
+
+test('dashboard date range changes date-sensitive statistics', function () {
+    $past = now()->subDays(3)->toDateString();
+    $department = Department::create(['name' => 'General', 'slug' => 'general']);
+
+    Appointment::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'department_id' => $department->id,
+        'name' => $this->patient->name,
+        'email' => $this->patient->email,
+        'phone' => $this->patient->phone,
+        'date' => $past,
+        'time' => '10:00',
+        'appointment_number' => 'APT-PAST-001',
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    // The past appointment must appear when that day is the selected range...
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => $past,
+        'date_to' => $past,
+    ]))->assertOk()->assertSee('APT-PAST-001');
+
+    // ...but not on the default (today) dashboard.
+    $this->actingAs($this->user)->get(route('dashboard'))
+        ->assertOk()
+        ->assertDontSee('APT-PAST-001');
+});
+
+test('dashboard appointment list honours a multi-day date range', function () {
+    $department = Department::create(['name' => 'General', 'slug' => 'general']);
+    $start = now()->subDays(2)->toDateString();
+    $end = now()->toDateString();
+
+    Appointment::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'department_id' => $department->id,
+        'name' => $this->patient->name,
+        'email' => $this->patient->email,
+        'phone' => $this->patient->phone,
+        'date' => $start,
+        'time' => '09:00',
+        'appointment_number' => 'APT-RANGE-001',
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => $start,
+        'date_to' => $end,
+    ]));
+    $response->assertOk();
+    $response->assertSee('APT-RANGE-001');
+});
+
+test('dashboard billing totals use the selected date range', function () {
+    $start = now()->subDays(3)->toDateString();
+    $end = now()->toDateString();
+
+    Invoice::create([
+        'patient_id' => $this->patient->id,
+        'total' => 250.00,
+        'amount_paid' => 250.00,
+        'balance' => 0.00,
+        'status' => 'paid',
+        'created_at' => $start,
+    ]);
+
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => $start,
+        'date_to' => $end,
+    ]))->assertOk()->assertSee('250.00');
+
+    // A different range that excludes the invoice must not show its total.
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => now()->subDays(10)->toDateString(),
+        'date_to' => now()->subDays(5)->toDateString(),
+    ]))->assertOk()->assertDontSee('250.00');
+});
+
+test('dashboard supports the this week preset', function () {
+    $response = $this->actingAs($this->user)->get(route('dashboard', ['period' => 'this_week']));
+    $response->assertOk();
+
+    $startOfWeek = now()->startOfWeek(\Carbon\Carbon::SUNDAY);
+    $endOfWeek = $startOfWeek->copy()->addDays(6)->toDateString();
+
+    $response->assertSee('name="date_from" value="' . $startOfWeek->toDateString() . '"', false);
+    $response->assertSee('name="date_to" value="' . $endOfWeek . '"', false);
+});
+
+test('dashboard supports the this month preset', function () {
+    $response = $this->actingAs($this->user)->get(route('dashboard', ['period' => 'this_month']));
+    $response->assertOk();
+
+    $response->assertSee('name="date_from" value="' . now()->startOfMonth()->toDateString() . '"', false);
+    $response->assertSee('name="date_to" value="' . now()->endOfMonth()->toDateString() . '"', false);
+});
+
+test('dashboard total appointments respects the selected date range', function () {
+    $department = Department::create(['name' => 'General', 'slug' => 'general']);
+
+    // Appointment A on 2026-08-19, Appointment B on 2026-08-21.
+    foreach ([
+        '2026-08-19' => 'APT-A-001',
+        '2026-08-21' => 'APT-B-001',
+    ] as $date => $number) {
+        Appointment::create([
+            'patient_id' => $this->patient->id,
+            'doctor_id' => $this->doctor->id,
+            'department_id' => $department->id,
+            'name' => $this->patient->name,
+            'email' => $this->patient->email,
+            'phone' => $this->patient->phone,
+            'date' => $date,
+            'time' => '10:00',
+            'appointment_number' => $number,
+            'status' => AppointmentStatus::Scheduled,
+        ]);
+    }
+
+    // 2026-08-19 → 2026-08-19  = 1
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => '2026-08-19', 'date_to' => '2026-08-19',
+    ]))->assertOk()
+        ->assertSeeInOrder(['Total Appointments', 'stat-value mb-0">1</h5>'], false);
+
+    // 2026-08-20 → 2026-08-20  = 0 (no appointments that day)
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => '2026-08-20', 'date_to' => '2026-08-20',
+    ]))->assertOk()
+        ->assertSeeInOrder(['Total Appointments', 'stat-value mb-0">0</h5>'], false);
+
+    // 2026-08-19 → 2026-08-21  = 2
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => '2026-08-19', 'date_to' => '2026-08-21',
+    ]))->assertOk()
+        ->assertSeeInOrder(['Total Appointments', 'stat-value mb-0">2</h5>'], false);
+
+    // The default (today) dashboard must not count off-range appointments.
+    $this->actingAs($this->user)->get(route('dashboard'))
+        ->assertOk()
+        ->assertSeeInOrder(['Total Appointments', 'stat-value mb-0">0</h5>'], false);
+});
+
+test('dashboard date-sensitive KPIs respect the selected range', function () {
+    $department = Department::create(['name' => 'General', 'slug' => 'general']);
+    $from = now()->subDays(2)->toDateString();
+    $mid = now()->subDays(1)->toDateString();
+    $to = now()->toDateString();
+
+    // Records created/dated inside the range.
+    $appointment = Appointment::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'department_id' => $department->id,
+        'name' => $this->patient->name,
+        'email' => $this->patient->email,
+        'phone' => $this->patient->phone,
+        'date' => $mid,
+        'time' => '09:00',
+        'appointment_number' => 'APT-KPI-001',
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    $consultation = Consultation::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'appointment_id' => $appointment->id,
+        'clinical_notes' => 'kpi range test',
+        'status' => 'completed',
+    ]);
+    $consultation->update(['created_at' => $mid]);
+
+    $prescription = Prescription::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'prescribed_date' => $mid,
+        'notes' => 'kpi range test',
+    ]);
+    $prescription->update(['created_at' => $mid]);
+
+    QueueTicket::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'queue_date' => $mid,
+        'ticket_number' => 'KPI001',
+        'status' => 'waiting',
+    ]);
+
+    // When the range covers them, each KPI shows the record.
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => $from, 'date_to' => $to,
+    ]))->assertOk()
+        ->assertSeeInOrder(['Total Appointments', 'stat-value mb-0">1</h5>'], false)
+        ->assertSeeInOrder(['Queue Waiting', 'stat-value mb-0">1</h4>'], false)
+        ->assertSeeInOrder(['Consultations', 'stat-value mb-0">1<'], false)
+        ->assertSeeInOrder(['Prescriptions', 'stat-value mb-0">1</h5>'], false);
+
+    // When the range excludes them, the same KPIs all drop to zero.
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => now()->subDays(10)->toDateString(),
+        'date_to' => now()->subDays(6)->toDateString(),
+    ]))->assertOk()
+        ->assertSeeInOrder(['Total Appointments', 'stat-value mb-0">0</h5>'], false)
+        ->assertSeeInOrder(['Queue Waiting', 'stat-value mb-0">0</h4>'], false)
+        ->assertSeeInOrder(['Consultations', 'stat-value mb-0">0<'], false)
+        ->assertSeeInOrder(['Prescriptions', 'stat-value mb-0">0</h5>'], false);
+});
+
+test('dashboard rejects a start date after the end date', function () {
+    $from = now()->addDays(2)->toDateString();
+    $to = now()->toDateString();
+
+    $this->actingAs($this->user)
+        ->from(route('dashboard'))
+        ->get(route('dashboard', ['date_from' => $from, 'date_to' => $to]))
+        ->assertSessionHasErrors('date_range')
+        ->assertRedirect(route('dashboard'));
+});
+
+test('dashboard rejects malformed date input safely', function () {
+    $this->actingAs($this->user)->get(route('dashboard', ['date_from' => 'not-a-date', 'date_to' => '2026-08-18']))
+        ->assertRedirect(route('dashboard'));
+
+    $this->actingAs($this->user)->get(route('dashboard', ['date_from' => '2026-13-99', 'date_to' => '2026-13-99']))
+        ->assertRedirect(route('dashboard'));
+
+    $this->actingAs($this->user)->get(route('dashboard', ['period' => 'bogus']))
+        ->assertRedirect(route('dashboard'));
+});
+
+test('dashboard reset returns to the today range', function () {
+    $this->actingAs($this->user)->get(route('dashboard', [
+        'date_from' => now()->subDays(4)->toDateString(),
+        'date_to' => now()->subDays(2)->toDateString(),
+    ]))->assertOk();
+
+    $today = now()->toDateString();
+
+    $response = $this->actingAs($this->user)->get(route('dashboard'));
+    $response->assertOk();
+    $response->assertSee('name="date_from" value="' . $today . '"', false);
+    $response->assertSee('name="date_to" value="' . $today . '"', false);
+});
+
+test('dashboard doctor summary is limited to 5 doctors', function () {
+    foreach (range(2, 7) as $i) {
+        Doctor::factory()->create([
+            'name' => "Doc {$i}",
+            'slug' => 'doctor-' . $i,
+            'is_available' => true,
+        ]);
+    }
+
+    $response = $this->actingAs($this->user)->get(route('dashboard'));
+    $response->assertOk();
+
+    // The five alphabetically-first available doctors are shown...
+    $response->assertSee('Doc 2')
+        ->assertSee('Doc 3')
+        ->assertSee('Doc 6')
+        // ...but the sixth available doctor is not loaded onto the dashboard.
+        ->assertDontSee('Doc 7');
 });
 
 // --- FINANCIAL DASHBOARD KPI ---

@@ -45,6 +45,110 @@ class Medicine extends Model
         return $this->hasMany(StockMovement::class);
     }
 
+    public function inventoryBatches()
+    {
+        return $this->hasMany(InventoryBatch::class);
+    }
+
+    /**
+     * Batch quantities that are usable (quantity > 0 and not expired).
+     */
+    public function usableStockQuantity(): int
+    {
+        return (int) $this->inventoryBatches()
+            ->where('quantity', '>', 0)
+            ->where(function ($q) {
+                $q->whereNull('expiry_date')->orWhere('expiry_date', '>', now());
+            })
+            ->sum('quantity');
+    }
+
+    /**
+     * Batch quantities that are physically present but expired.
+     */
+    public function expiredStockQuantity(): int
+    {
+        return (int) $this->inventoryBatches()
+            ->where('quantity', '>', 0)
+            ->where('expiry_date', '<=', now())
+            ->sum('quantity');
+    }
+
+    /**
+     * Total physical stock across every batch (including expired).
+     */
+    public function totalPhysicalStock(): int
+    {
+        return (int) $this->inventoryBatches()->where('quantity', '>', 0)->sum('quantity');
+    }
+
+    /**
+     * Keep the aggregate stock_quantity in sync with the usable batch totals.
+     */
+    public function reconcileStock(): void
+    {
+        $this->update(['stock_quantity' => $this->usableStockQuantity()]);
+    }
+
+    /**
+     * Valid (non-expired, in-stock) batches ordered for FEFO — earliest expiry first.
+     */
+    public function fefoBatches()
+    {
+        return $this->inventoryBatches()
+            ->where('quantity', '>', 0)
+            ->where(function ($q) {
+                $q->whereNull('expiry_date')->orWhere('expiry_date', '>', now());
+            })
+            ->orderByRaw('expiry_date IS NULL')
+            ->orderBy('expiry_date', 'asc')
+            ->orderBy('id', 'asc');
+    }
+
+    /**
+     * Deduct a quantity using FEFO across valid batches, recording a movement
+     * against each batch used.
+     *
+     * @return \Illuminate\Support\Collection<int, StockMovement>
+     */
+    public function deductFromBatches(int $quantity, ?string $reason = null, ?int $performedBy = null, $reference = null, string $type = 'dispensed')
+    {
+        if ($quantity <= 0) {
+            return collect();
+        }
+
+        $available = $this->usableStockQuantity();
+
+        if ($quantity > $available) {
+            throw new \RuntimeException(
+                "Insufficient usable stock for {$this->name}. Available: {$available}, Requested: {$quantity}"
+            );
+        }
+
+        return DB::transaction(function () use ($quantity, $reason, $performedBy, $reference, $type) {
+            $movements = collect();
+            $remaining = $quantity;
+
+            foreach ($this->fefoBatches()->get() as $batch) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $take = min($batch->quantity, $remaining);
+                $movements->push($batch->stockOut($take, $reason, $performedBy, $reference, $type, false));
+                $remaining -= $take;
+            }
+
+            if ($remaining > 0) {
+                throw new \RuntimeException("Insufficient usable stock for {$this->name}.");
+            }
+
+            $this->reconcileStock();
+
+            return $movements;
+        });
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

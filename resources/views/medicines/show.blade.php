@@ -69,6 +69,81 @@
                 </div>
             </div>
 
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-box-seam me-2"></i>Stock by Batch / Lot</h6>
+                    <span class="text-muted small">
+                        Total: {{ $medicine->totalPhysicalStock() }} &middot; Usable: <span class="text-success fw-medium">{{ $medicine->usableStockQuantity() }}</span> &middot; Expired: <span class="text-danger fw-medium">{{ $medicine->expiredStockQuantity() }}</span>
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Batch / Lot</th>
+                                <th>Received</th>
+                                <th>Expiry</th>
+                                <th class="text-end">Qty</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($batches as $batch)
+                                <tr>
+                                    <td class="fw-medium">{{ $batch->batch_number }}</td>
+                                    <td>{{ fmt_date($batch->received_date) }}</td>
+                                    <td>{{ $batch->expiry_date ? fmt_date($batch->expiry_date) : '-' }}</td>
+                                    <td class="text-end fw-semibold">{{ $batch->quantity }}</td>
+                                    <td>
+                                        <span class="badge {{ $batch->status_badge }}">
+                                            @if ($batch->expiry_status === 'expired')
+                                                <i class="bi bi-x-circle me-1"></i>
+                                            @endif
+                                            {{ $batch->expiry_status_label }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        @if ($batch->isExpired() && $batch->quantity > 0 && auth()->user()->can('inventory.adjust'))
+                                            <form method="POST" action="{{ route('inventory.batch.expire', $batch) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Write off {{ $batch->quantity }} units from expired batch {{ $batch->batch_number }}?');">
+                                                    <i class="bi bi-x-lg me-1"></i> Write Off
+                                                </button>
+                                            </form>
+                                        @elseif ($batch->canDelete() && auth()->user()->can('inventory.adjust'))
+                                            <button type="button" class="btn btn-sm btn-outline-danger" x-data
+                                                @click="window.dispatchEvent(new CustomEvent('open-batch-delete', { detail: {
+                                                    id: {{ $batch->id }},
+                                                    medicine: {{ Js::from($medicine->name) }},
+                                                    batch: {{ Js::from($batch->batch_number) }},
+                                                    quantity: {{ $batch->quantity }},
+                                                    expiry: {{ Js::from($batch->expiry_date ? $batch->expiry_date->format('M d, Y') : null) }}
+                                                } }))">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </button>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary"
+                                                title="{{ $batch->deleteBlockReason() ?: 'Batch has no stock remaining' }}">
+                                                <i class="bi bi-lock me-1"></i> Protected
+                                            </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
+                                        No batches recorded yet.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             @if (isset($movements) && $movements->count())
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white">
@@ -79,6 +154,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Date</th>
+                                    <th>Batch</th>
                                     <th>Type</th>
                                     <th>Qty</th>
                                     <th>Balance</th>
@@ -89,7 +165,14 @@
                                 @foreach ($movements as $m)
                                     <tr>
                                         <td>{{ fmt_date($m->movement_date) }}</td>
-                                        <td><span class="badge bg-{{ match($m->type) { 'opening'=>'info', 'stock_in'=>'success', 'stock_out'=>'warning', default=>'secondary' } }}">{{ $m->type_label }}</span></td>
+                                        <td>
+                                            @if ($m->inventoryBatch)
+                                                <span class="badge bg-light border text-dark">{{ $m->inventoryBatch->batch_number }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td><span class="badge bg-{{ match($m->type) { 'opening'=>'info', 'stock_in'=>'success', 'stock_out'=>'warning', 'dispensed'=>'primary', 'expired'=>'danger', default=>'secondary' } }}">{{ $m->type_label }}</span></td>
                                         <td>{{ $m->quantity > 0 ? '+' . $m->quantity : $m->quantity }}</td>
                                         <td>{{ $m->balance_after }}</td>
                                         <td>{{ $m->performer->name ?? '—' }}</td>
@@ -168,4 +251,69 @@
             @endif
         </div>
     </div>
+
+    {{-- Batch delete confirmation modal --}}
+    <div x-data="{
+        open: false,
+        batch: null,
+        show(detail) { this.batch = detail; this.open = true; },
+        close() { this.open = false; }
+    }"
+        x-init="$watch('open', (val) => { if (val) document.body.classList.add('modal-open'); else document.body.classList.remove('modal-open'); })"
+        @open-batch-delete.window="show($event.detail)"
+        @keydown.escape.window="close()">
+        <div x-show="open" x-cloak class="modal" tabindex="-1" role="dialog" aria-modal="true"
+            :aria-hidden="open ? 'false' : 'true'" @click.self="close()">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title"><i class="bi bi-trash me-2 text-danger"></i>Delete Unused Stock Record</h6>
+                        <button type="button" class="btn-close" @click="close()" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <template x-if="batch">
+                            <div>
+                                <div class="alert alert-warning py-2">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    Deleting an unused stock record cannot be undone. Records with transaction history are never deleted.
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-0">Medicine</label>
+                                        <div class="fw-semibold" x-text="batch.medicine"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-0">Batch / Lot</label>
+                                        <div class="fw-semibold" x-text="batch.batch"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-0">Current Quantity</label>
+                                        <div x-text="batch.quantity"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-0">Expiry Date</label>
+                                        <div x-text="batch.expiry || '—'"></div>
+                                    </div>
+                                </div>
+                                <p class="mb-0"><strong>Delete this unused stock record?</strong></p>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" @click="close()">Cancel</button>
+                        <form method="POST" :action="'/inventory/batches/' + (batch ? batch.id : '')">
+                            @csrf
+                            @method('delete')
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i> Delete Stock Record
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div x-show="open" x-cloak class="modal-backdrop fade show"></div>
+    </div>
+
+    <style>[x-cloak] { display: none !important; }</style>
 </x-auth-layout>

@@ -23,8 +23,11 @@
         {{-- Section navigation --}}
         <div class="col-md-4 col-lg-3">
             <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0"><i class="bi bi-gear me-2"></i>{{ __('app.settings.account_settings') }}</h6>
+                </div>
                 <div class="card-body p-2">
-                    <nav class="nav nav-pills flex-column flex-md-column flex-row overflow-auto gap-1">
+                    <nav class="nav nav-pills flex-column gap-1">
                         <a class="nav-link text-start d-flex align-items-center" :class="activeSection === 'profile' && 'active'"
                             href="#" @click.prevent="activeSection = 'profile'">
                             <i class="bi bi-person me-2"></i>{{ __('app.settings.profile') }}
@@ -58,86 +61,15 @@
         <div class="col-md-8 col-lg-9">
             {{-- Profile form (own form: multipart for avatar) --}}
             <div x-show="activeSection === 'profile'" x-cloak>
-                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
-                    @csrf
-                    @method('patch')
-
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-white">
-                            <h6 class="mb-0"><i class="bi bi-person me-2"></i>{{ __('app.settings.profile') }}</h6>
-                        </div>
-                        <div class="card-body">
-                            @if ($errors->any())
-                                <div class="alert alert-danger">
-                                    <ul class="mb-0">
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
-
-                            @if (session('status') === 'profile-updated')
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle me-1"></i> {{ __('app.settings.profile_updated') }}
-                                </div>
-                            @endif
-
-                            <div class="mb-3">
-                                <label class="form-label">{{ __('app.settings.profile_photo') }}</label>
-                                <div class="d-flex align-items-center gap-3 flex-wrap">
-                                    @if ($user->avatar)
-                                        <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}"
-                                            class="rounded-circle border border-2" style="width:80px;height:80px;object-fit:cover;">
-                                    @else
-                                        <span class="avatar bg-primary" style="width:80px;height:80px;font-size:1.5rem;border-radius:50%;">
-                                            {{ initials($user->name) }}
-                                        </span>
-                                    @endif
-                                    <div class="flex-grow-1" style="max-width:340px;">
-                                        <input type="file" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp"
-                                            class="form-control @error('avatar') is-invalid @enderror">
-                                        <small class="text-muted">JPG, PNG, GIF or WEBP &middot; max 2MB</small>
-                                    </div>
-                                </div>
-                                @error('avatar')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="profile_name" class="form-label">{{ __('app.settings.name') }}</label>
-                                <input id="profile_name" type="text" name="name" value="{{ old('name', $user->name) }}"
-                                    class="form-control @error('name') is-invalid @enderror" required autofocus>
-                                @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="profile_email" class="form-label">{{ __('app.settings.email') }}</label>
-                                <input id="profile_email" type="email" name="email" value="{{ old('email', $user->email) }}"
-                                    class="form-control @error('email') is-invalid @enderror" required>
-                                @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="profile_phone" class="form-label">{{ __('app.settings.phone') }}</label>
-                                <input id="profile_phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}"
-                                    class="form-control @error('phone') is-invalid @enderror">
-                                @error('phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check2 me-1"></i> {{ __('app.settings.save_changes') }}
-                            </button>
-                        </div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0"><i class="bi bi-person me-2"></i>{{ __('app.settings.profile_information') }}</h6>
+                        <small class="text-muted">{{ __('app.settings.profile_information_help') }}</small>
                     </div>
-                </form>
+                    <div class="card-body">
+                        @include('profile.partials.update-profile-information-form')
+                    </div>
+                </div>
             </div>
 
             <form method="POST" action="{{ route('user.settings.store') }}" autocomplete="off">

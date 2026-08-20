@@ -1,8 +1,10 @@
 /* =========================================================
    Clinic Management System - Admin Panel
-   Modern professional medical SaaS design language:
-   White sidebar, white navbar, soft lavender background,
+   Modern professional medical SaaS design language.
+   Light theme: light lavender sidebar, white navbar,
+   soft blue-gray page background, white cards,
    indigo/purple primary accent, dark navy typography.
+   Dark theme variables are scoped under [data-bs-theme="dark"].
    ========================================================= */
 
 :root {
@@ -15,17 +17,23 @@
     --clinic-primary: #4f46e5;
     --clinic-primary-dark: #4338ca;
     --clinic-primary-rgb: 79, 70, 229;
-    --clinic-soft-bg: #f7f7fc;
+    --clinic-soft-bg: #f5f7fc;
     --clinic-soft-bg-2: #f4f3fb;
 
-    /* Sidebar (light) */
-    --sidebar-bg: #ffffff;
-    --sidebar-border: #ecebf4;
-    --sidebar-text: #3f3d5c;
-    --sidebar-muted: #8b89a8;
-    --sidebar-hover-bg: #f4f3fb;
-    --sidebar-active-bg: #eef2ff;
+    /* Sidebar (light): very light indigo/lavender tint */
+    --sidebar-bg: #f3f2ff;
+    --sidebar-border: #e6e4f7;
+    --sidebar-text: #37355f;
+    --sidebar-muted: #7673a3;
+    --sidebar-hover-bg: #ebeaf9;
+    --sidebar-active-bg: #e6e8fd;
     --sidebar-active-text: #4f46e5;
+
+    /* Text / typography (light) */
+    --app-body-color: #1f2437;
+    --app-heading-color: #1f2437;
+    --app-muted-color: #8b89a8;
+    --app-label-color: #3f3d5c;
 
     /* Bootstrap overrides - primary color system */
     --bs-primary: var(--clinic-primary);
@@ -57,6 +65,12 @@
     --sidebar-active-bg: #2d3150;
     --sidebar-active-text: #a5b4fc;
 
+    /* Text / typography (dark) — bright, readable on the dark palette */
+    --app-body-color: #d7daea;
+    --app-heading-color: #f0f2fc;
+    --app-muted-color: #a5abc6;
+    --app-label-color: #c7cce3;
+
     --bs-primary: var(--clinic-primary);
     --bs-primary-rgb: var(--clinic-primary-rgb);
     --bs-primary-bg-subtle: #2d3150;
@@ -69,19 +83,22 @@
     --bs-link-hover-color-rgb: 199, 210, 254;
 }
 
-body {
+/* `html body` beats Bootstrap's `body` (which loads after this file and
+   would otherwise paint the light page white). The dark override below
+   ([data-bs-theme="dark"] body) has higher specificity, so it still wins. */
+html body {
     background: var(--clinic-soft-bg);
     font-size: 0.9rem;
     font-family: var(--app-font);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    color: #1f2437;
+    color: var(--app-body-color);
 }
 
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-family: var(--app-font-headings);
     letter-spacing: -0.2px;
-    color: #1f2437;
+    color: var(--app-heading-color);
 }
 
 a {
@@ -406,11 +423,11 @@ main.page-container {
     font-size: 1.4rem;
     font-weight: 600;
     letter-spacing: -0.3px;
-    color: #1f2437;
+    color: var(--app-heading-color);
 }
 
 .page-header p {
-    color: #8b89a8;
+    color: var(--app-muted-color);
 }
 
 .breadcrumb {
@@ -418,7 +435,7 @@ main.page-container {
 }
 
 .breadcrumb .breadcrumb-item a {
-    color: #8b89a8;
+    color: var(--app-muted-color);
     text-decoration: none;
     transition: color 0.15s ease;
 }
@@ -487,7 +504,7 @@ main.page-container {
     text-transform: uppercase;
     letter-spacing: 0.6px;
     font-weight: 600;
-    color: #8b89a8;
+    color: var(--app-muted-color);
 }
 
 .stat-card .stat-value {
@@ -496,6 +513,11 @@ main.page-container {
     font-weight: 600;
     letter-spacing: -0.6px;
     line-height: 1.15;
+}
+
+.stat-card.ring {
+    outline: 2px solid var(--clinic-primary);
+    outline-offset: -2px;
 }
 
 /* ------------------------------------------------------------------
@@ -511,7 +533,7 @@ main.page-container {
     text-transform: uppercase;
     letter-spacing: 0.6px;
     font-weight: 600;
-    color: #8b89a8;
+    color: var(--app-muted-color);
     white-space: nowrap;
     border-bottom-width: 1px;
 }
@@ -588,7 +610,7 @@ body.density-compact .table th {
 }
 
 .nav-pills .nav-link i {
-    color: #8b89a8;
+    color: var(--app-muted-color);
 }
 
 .nav-pills .nav-link:hover {
@@ -628,7 +650,7 @@ body.density-compact .table th {
 
 .form-label {
     font-weight: 500;
-    color: #3f3d5c;
+    color: var(--app-label-color);
 }
 
 /* ------------------------------------------------------------------
@@ -743,4 +765,12 @@ body.density-compact .table th {
     background-color: #232740;
     border-color: var(--sidebar-border);
     color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .nav-pills .nav-link {
+    color: var(--app-label-color);
+}
+
+[data-bs-theme="dark"] .nav-pills .nav-link:hover {
+    color: var(--clinic-primary);
 }
