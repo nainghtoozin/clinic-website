@@ -399,7 +399,7 @@ test('analytics shows top medicines', function () {
 
     $response = $this->actingAs($this->user)->get(route('analytics.index'));
     $response->assertOk();
-    $response->assertSee('Most Prescribed Medicines');
+    $response->assertSee('Top Prescribed Medicines');
     $response->assertSee('Amoxicillin');
 });
 

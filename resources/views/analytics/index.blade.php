@@ -419,24 +419,53 @@
             @endif
         </div>
         <div class="section-body">
-            <div class="mb-3">
-                <span class="data-label" style="display:inline; text-transform:none; letter-spacing:0; font-size:0.82rem; font-weight:500;">Total Prescriptions:</span>
-                <span class="fw-bold ms-1">{{ number_format($totalPrescriptions) }}</span>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="analytics-data-card">
+                        <div class="data-label">Total Prescriptions</div>
+                        <div class="data-value text-primary">{{ number_format($totalPrescriptions) }}</div>
+                        <div class="data-range mt-1">{{ \Carbon\Carbon::parse($dateFrom)->format('M d, Y') }} — {{ \Carbon\Carbon::parse($dateTo)->format('M d, Y') }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="analytics-data-card">
+                        <div class="data-label">Unique Medicines</div>
+                        <div class="data-value text-info">{{ $topMedicinesPaginator->total() }}</div>
+                        <div class="data-range mt-1">Medicines prescribed in range</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="analytics-data-card">
+                        <div class="data-label">Total Quantity</div>
+                        <div class="data-value text-success">{{ number_format($topMedicinesPaginator->sum('total_quantity')) }}</div>
+                        <div class="data-range mt-1">Units prescribed in range</div>
+                    </div>
+                </div>
             </div>
+
             @if ($topMedicinesPaginator->isNotEmpty())
                 <div class="analytics-sub-section">
-                    <div class="sub-title">Most Prescribed Medicines</div>
+                    <div class="sub-title">Top Prescribed Medicines</div>
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
-                            <thead class="table-light">
-                                <tr><th>Medicine</th><th class="text-end">Total Quantity</th><th class="text-end">Prescriptions</th></tr>
+                        <table class="table table-sm table-hover mb-0 analytics-medicine-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Medicine</th>
+                                    <th class="text-end">Total Qty</th>
+                                    <th class="text-end">Prescriptions</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                @foreach ($topMedicinesPaginator as $m)
-                                    <tr>
-                                        <td class="small fw-semibold">{{ $m->medicine_name }}</td>
-                                        <td class="text-end small">{{ $m->total_quantity }}</td>
-                                        <td class="text-end small">{{ $m->prescription_count }}</td>
+                                @foreach ($topMedicinesPaginator as $idx => $m)
+                                    @php $rank = $topMedicinesPaginator->firstItem() + $idx; @endphp
+                                    <tr class="{{ $rank <= 3 ? 'analytics-rank-top' : '' }}">
+                                        <td>
+                                            <span class="analytics-rank-badge {{ $rank <= 3 ? 'analytics-rank-top-' . $rank : '' }}">{{ $rank }}</span>
+                                        </td>
+                                        <td class="fw-semibold">{{ $m->medicine_name }}</td>
+                                        <td class="text-end">{{ number_format($m->total_quantity) }}</td>
+                                        <td class="text-end fw-semibold">{{ $m->prescription_count }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -449,7 +478,10 @@
                     @endif
                 </div>
             @else
-                <div class="analytics-empty-state">No prescription data</div>
+                <div class="analytics-empty-state">
+                    <i class="bi bi-capsule d-block mb-2" style="font-size: 1.4rem;"></i>
+                    No prescription data for the selected date range
+                </div>
             @endif
         </div>
     </div>
@@ -482,13 +514,13 @@
                 <div class="col-6 col-md">
                     <div class="analytics-data-card text-center">
                         <div class="data-label">Expired</div>
-                        <div class="data-value text-secondary">{{ number_format($expiredCount) }}</div>
+                        <div class="data-value text-danger">{{ number_format($expiredCount) }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md">
                     <div class="analytics-data-card text-center">
                         <div class="data-label">Expiring Soon</div>
-                        <div class="data-value text-info">{{ number_format($expiringSoonCount) }}</div>
+                        <div class="data-value text-warning">{{ number_format($expiringSoonCount) }}</div>
                     </div>
                 </div>
             </div>
@@ -498,17 +530,40 @@
                     <div class="analytics-sub-section">
                         <div class="sub-title">Stock Movements by Type</div>
                         @if ($stockMovementsByType->isEmpty())
-                            <div class="analytics-empty-state">No movement data</div>
+                            <div class="analytics-empty-state">
+                                <i class="bi bi-arrow-left-right d-block mb-2" style="font-size: 1.4rem;"></i>
+                                No movement data
+                            </div>
                         @else
                             <div class="table-responsive">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead><tr><th>Type</th><th class="text-end">Count</th><th class="text-end">Total Qty</th></tr></thead>
+                                <table class="table table-sm table-hover mb-0 analytics-movement-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th class="text-end">Count</th>
+                                            <th class="text-end">Total Qty</th>
+                                        </tr>
+                                    </thead>
                                     <tbody>
+                                        @php
+                                            $badgeMap = [
+                                                'stock_in' => 'badge-stock-in',
+                                                'stock_out' => 'badge-stock-out',
+                                                'dispensed' => 'badge-dispensed',
+                                                'adjustment' => 'badge-adjustment',
+                                                'expired' => 'badge-expired',
+                                                'opening' => 'badge-opening',
+                                            ];
+                                        @endphp
                                         @foreach ($stockMovementsByType as $mv)
+                                            @php
+                                                $badgeClass = $badgeMap[$mv->type] ?? 'badge-opening';
+                                                $label = ucfirst(str_replace('_', ' ', $mv->type));
+                                            @endphp
                                             <tr>
-                                                <td class="small"><span class="badge stock-movement-badge">{{ ucfirst(str_replace('_', ' ', $mv->type)) }}</span></td>
-                                                <td class="text-end small">{{ $mv->count }}</td>
-                                                <td class="text-end small fw-semibold">{{ number_format($mv->total_quantity) }}</td>
+                                                <td><span class="stock-movement-badge {{ $badgeClass }}">{{ $label }}</span></td>
+                                                <td class="text-end">{{ number_format($mv->count) }}</td>
+                                                <td class="text-end fw-semibold">{{ number_format($mv->total_quantity) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -521,16 +576,24 @@
                     <div class="analytics-sub-section">
                         <div class="sub-title">Fast-Moving Medicines (Dispensed)</div>
                         @if ($fastMovingMedicines->isEmpty())
-                            <div class="analytics-empty-state">No dispensing data</div>
+                            <div class="analytics-empty-state">
+                                <i class="bi bi-capsule d-block mb-2" style="font-size: 1.4rem;"></i>
+                                No dispensing data
+                            </div>
                         @else
                             <div class="table-responsive">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead><tr><th>Medicine</th><th class="text-end">Qty Dispensed</th></tr></thead>
+                                <table class="table table-sm table-hover mb-0 analytics-movement-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Medicine</th>
+                                            <th class="text-end">Qty Dispensed</th>
+                                        </tr>
+                                    </thead>
                                     <tbody>
                                         @foreach ($fastMovingMedicines as $fm)
                                             <tr>
-                                                <td class="small fw-semibold">{{ $fm->medicine_name }}</td>
-                                                <td class="text-end small">{{ $fm->total_moved }}</td>
+                                                <td class="fw-semibold">{{ $fm->medicine_name }}</td>
+                                                <td class="text-end fw-semibold">{{ number_format($fm->total_moved) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
