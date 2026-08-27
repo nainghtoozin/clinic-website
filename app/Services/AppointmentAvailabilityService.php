@@ -6,6 +6,7 @@ use App\Enums\AppointmentStatus;
 use App\Enums\DayOfWeek;
 use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Services\ClinicSettingsService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +20,12 @@ use Illuminate\Support\Facades\DB;
  * `available_days` (ISO 1=Mon..7=Sun), `start_time` and `end_time`. Overnight
  * schedules (end_time <= start_time) are NOT supported and are treated as an
  * invalid / unconfigured schedule.
+ *
+ * Break support: optional `break_start` and `break_end` columns define a daily
+ * lunch/break window. Slots overlapping the break are excluded.
+ *
+ * Unavailability: the `doctor_unavailable_dates` table stores specific dates
+ * when a doctor is not available (leave, holiday, training, emergency, etc.).
  */
 class AppointmentAvailabilityService
 {
@@ -84,11 +91,84 @@ class AppointmentAvailabilityService
     }
 
     /**
+     * Normalized break hours as ['start' => 'H:i', 'end' => 'H:i'] or null.
+     *
+     * Returns null if no break is configured or if the break is invalid.
+     */
+    public function breakHours(Doctor $doctor): ?array
+    {
+        $start = $this->toMinutes($doctor->break_start);
+        $end = $this->toMinutes($doctor->break_end);
+
+        if ($start === null || $end === null || $end <= $start) {
+            return null;
+        }
+
+        return [
+            'start' => $this->minutesToTime($start),
+            'end' => $this->minutesToTime($end),
+        ];
+    }
+
+    /**
+     * Check if a time slot overlaps with the doctor's break time.
+     */
+    public function defaultDuration(): int
+    {
+        return ClinicSettingsService::getInt('appointment.default_duration', 30);
+    }
+
+    public function isDuringBreak(Doctor $doctor, string $time, int $duration = 0): bool
+    {
+        $duration = $duration ?: $this->defaultDuration();
+
+        $break = $this->breakHours($doctor);
+
+        if ($break === null) {
+            return false;
+        }
+
+        $timeMinutes = $this->toMinutes($time);
+        $breakStart = $this->toMinutes($break['start']);
+        $breakEnd = $this->toMinutes($break['end']);
+
+        return $timeMinutes !== null
+            && $timeMinutes < $breakEnd
+            && ($timeMinutes + $duration) > $breakStart;
+    }
+
+    /**
+     * Check if a date is unavailable for the doctor.
+     */
+    public function isUnavailableDate(Doctor $doctor, Carbon|string $date): bool
+    {
+        $date = $date instanceof Carbon ? $date->toDateString() : Carbon::parse($date)->toDateString();
+
+        return \App\Models\DoctorUnavailableDate::where('doctor_id', $doctor->id)
+            ->whereDate('date', $date)
+            ->exists();
+    }
+
+    /**
+     * Get the unavailable date record if it exists.
+     */
+    public function getUnavailableDate(Doctor $doctor, Carbon|string $date): ?\App\Models\DoctorUnavailableDate
+    {
+        $date = $date instanceof Carbon ? $date->toDateString() : Carbon::parse($date)->toDateString();
+
+        return \App\Models\DoctorUnavailableDate::where('doctor_id', $doctor->id)
+            ->whereDate('date', $date)
+            ->first();
+    }
+
+    /**
      * True when a booking starting at $time of length $duration minutes finishes
      * within the doctor's working hours.
      */
-    public function isWithinWorkingHours(Doctor $doctor, string $time, int $duration = self::DEFAULT_DURATION_MINUTES): bool
+    public function isWithinWorkingHours(Doctor $doctor, string $time, int $duration = 0): bool
     {
+        $duration = $duration ?: $this->defaultDuration();
+
         $hours = $this->workingHours($doctor);
 
         if ($hours === null) {
@@ -106,9 +186,12 @@ class AppointmentAvailabilityService
      * List of bookable start times ("H:i") for a doctor on a given calendar date.
      *
      * Slots that would overlap an existing non-cancelled appointment are excluded.
+     * Slots that overlap the break time are excluded.
      */
-    public function availableSlots(Doctor $doctor, Carbon|string $date, int $duration = self::DEFAULT_DURATION_MINUTES): array
+    public function availableSlots(Doctor $doctor, Carbon|string $date, int $duration = 0): array
     {
+        $duration = $duration ?: $this->defaultDuration();
+
         if (! $this->isWorkingDay($doctor, $date)) {
             return [];
         }
@@ -116,6 +199,10 @@ class AppointmentAvailabilityService
         $hours = $this->workingHours($doctor);
 
         if ($hours === null) {
+            return [];
+        }
+
+        if ($this->isUnavailableDate($doctor, $date)) {
             return [];
         }
 
@@ -137,8 +224,10 @@ class AppointmentAvailabilityService
     /**
      * True when the given start time is a valid, currently available slot.
      */
-    public function isAvailableSlot(Doctor $doctor, Carbon|string $date, string $time, int $duration = self::DEFAULT_DURATION_MINUTES): bool
+    public function isAvailableSlot(Doctor $doctor, Carbon|string $date, string $time, int $duration = 0): bool
     {
+        $duration = $duration ?: $this->defaultDuration();
+
         return in_array(substr($time, 0, 5), $this->availableSlots($doctor, $date, $duration), true);
     }
 
@@ -223,12 +312,14 @@ class AppointmentAvailabilityService
 
     /**
      * Occupied time ranges for a doctor/date (minutes since midnight).
+     *
+     * Includes existing appointments AND break time.
      */
     protected function blockedRanges(Doctor $doctor, Carbon|string $date): array
     {
         $date = $date instanceof Carbon ? $date->toDateString() : Carbon::parse($date)->toDateString();
 
-        return Appointment::query()
+        $ranges = Appointment::query()
             ->where('doctor_id', $doctor->id)
             ->whereDate('date', $date)
             ->whereNotIn('status', [AppointmentStatus::Cancelled->value])
@@ -240,6 +331,16 @@ class AppointmentAvailabilityService
             ->filter(fn (array $range) => $range['end'] > $range['start'])
             ->values()
             ->all();
+
+        $break = $this->breakHours($doctor);
+        if ($break !== null) {
+            $ranges[] = [
+                'start' => $this->toMinutes($break['start']),
+                'end' => $this->toMinutes($break['end']),
+            ];
+        }
+
+        return $ranges;
     }
 
     protected function rangeOverlapsBlocked(int $start, int $end, array $blocked): bool

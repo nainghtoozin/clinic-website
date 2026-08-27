@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ClinicSettingsService;
 use Illuminate\Database\Eloquent\Model;
 
 class QueueTicket extends Model
@@ -45,18 +46,20 @@ class QueueTicket extends Model
 
     public static function generateTicketNumber(string $date): string
     {
-        $prefix = 'A';
+        $prefix = ClinicSettingsService::get('queue.ticket_prefix', 'A');
+        $seqLen = ClinicSettingsService::getInt('queue.ticket_sequence_length', 3);
         $lastTicket = static::whereDate('queue_date', $date)
             ->orderBy('ticket_number', 'desc')
             ->value('ticket_number');
 
-        if ($lastTicket && preg_match('/^A(\d{3})$/', $lastTicket, $matches)) {
+        $regex = '/^' . preg_quote($prefix) . '(\d{' . $seqLen . '})$/';
+        if ($lastTicket && preg_match($regex, $lastTicket, $matches)) {
             $nextNumber = (int) $matches[1] + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($nextNumber, $seqLen, '0', STR_PAD_LEFT);
     }
 
     public function isWaiting(): bool

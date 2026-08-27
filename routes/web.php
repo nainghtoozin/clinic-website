@@ -1,16 +1,24 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\CommunicationController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\InvestigationController;
+use App\Http\Controllers\LabTestController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationCenterController;
+use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\ProfileController;
@@ -70,14 +78,24 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
     Route::resource('doctors', DoctorController::class);
+    Route::post('/doctors/{doctor}/unavailable-dates', [DoctorController::class, 'storeUnavailableDate'])
+        ->name('doctors.unavailable-dates.store');
+    Route::delete('/doctors/{doctor}/unavailable-dates/{unavailableDate}', [DoctorController::class, 'destroyUnavailableDate'])
+        ->name('doctors.unavailable-dates.destroy');
     Route::resource('departments', DepartmentController::class);
     Route::resource('locations', LocationController::class);
     Route::resource('services', ServiceController::class);
 
     Route::resource('patients', PatientController::class);
 
+    Route::get('/patients/{patient}/appointments-json', [PatientController::class, 'appointmentsJson'])
+        ->name('patients.appointments-json');
+
     Route::post('patients/{patient}/restore', [PatientController::class, 'restore'])
         ->name('patients.restore');
+
+    Route::get('patients/{patient}/medical-record', [MedicalRecordController::class, 'show'])
+        ->name('patients.medical-record');
 
     Route::get('/appointments/availability', [AppointmentController::class, 'availableSlots'])
         ->name('appointments.availability');
@@ -122,6 +140,26 @@ Route::middleware(['auth'])->group(function () {
     // Prescription Management
     Route::resource('prescriptions', PrescriptionController::class);
 
+    // Lab Test Catalog
+    Route::resource('lab-tests', LabTestController::class);
+
+    // Investigations
+    Route::resource('investigations', InvestigationController::class)->except(['update']);
+    Route::put('investigations/{investigation}', [InvestigationController::class, 'update'])
+        ->name('investigations.update');
+    Route::post('investigations/{investigation}/status', [InvestigationController::class, 'updateStatus'])
+        ->name('investigations.status');
+    Route::post('investigations/{investigation}/result', [InvestigationController::class, 'enterResult'])
+        ->name('investigations.result');
+
+    // Communications
+    Route::resource('communications', CommunicationController::class)->except(['create', 'edit']);
+    Route::post('/communications/{communication}/complete-follow-up', [CommunicationController::class, 'completeFollowUp'])
+        ->name('communications.complete-follow-up');
+    Route::get('/communications/patient/{patient}', [CommunicationController::class, 'patientCommunications'])
+        ->name('communications.patient');
+    Route::get('/follow-ups', [CommunicationController::class, 'followUps'])->name('communications.follow-ups');
+
     // Inventory Management
     Route::get('/inventory', [InventoryController::class, 'dashboard'])->name('inventory.dashboard');
     Route::get('/inventory/medicines', [InventoryController::class, 'index'])->name('inventory.index');
@@ -147,6 +185,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('payments', PaymentController::class)->except(['edit', 'update']);
     Route::get('/payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
 
+    // Expense Management
+    Route::resource('expenses', ExpenseController::class);
+    Route::resource('expense-categories', ExpenseCategoryController::class)->except(['create', 'edit', 'show']);
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -161,10 +203,43 @@ Route::middleware(['auth'])->group(function () {
         ->name('staff.toggle-status');
 
     // Settings
+    Route::get('settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::get('settings/website', [SettingController::class, 'edit'])->name('settings.website.edit');
     Route::post('settings/website', [SettingController::class, 'update'])->name('settings.website.update');
     Route::get('settings/clinic', [SettingController::class, 'clinic'])->name('settings.clinic');
     Route::post('settings/clinic', [SettingController::class, 'updateClinic'])->name('settings.clinic.update');
+    Route::get('settings/appointment', [SettingController::class, 'appointment'])->name('settings.appointment');
+    Route::post('settings/appointment', [SettingController::class, 'updateAppointment'])->name('settings.appointment.update');
+    Route::get('settings/queue', [SettingController::class, 'queue'])->name('settings.queue');
+    Route::post('settings/queue', [SettingController::class, 'updateQueue'])->name('settings.queue.update');
+    Route::get('settings/billing', [SettingController::class, 'billing'])->name('settings.billing');
+    Route::post('settings/billing', [SettingController::class, 'updateBilling'])->name('settings.billing.update');
+    Route::get('settings/inventory', [SettingController::class, 'inventory'])->name('settings.inventory');
+    Route::post('settings/inventory', [SettingController::class, 'updateInventory'])->name('settings.inventory.update');
+    Route::get('settings/prescription', [SettingController::class, 'prescription'])->name('settings.prescription');
+    Route::post('settings/prescription', [SettingController::class, 'updatePrescription'])->name('settings.prescription.update');
+
+    // Backup & Restore
+    Route::get('/backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
+    Route::post('/backups', [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+    Route::get('/backups/{backup}', [\App\Http\Controllers\BackupController::class, 'show'])->name('backups.show');
+    Route::get('/backups/{backup}/download', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+    Route::post('/backups/{backup}/validate', [\App\Http\Controllers\BackupController::class, 'validateBackup'])->name('backups.validate');
+    Route::post('/backups/{backup}/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+    Route::delete('/backups/{backup}', [\App\Http\Controllers\BackupController::class, 'destroy'])->name('backups.destroy');
+
+    // Notification Center
+    Route::get('/notifications', [NotificationCenterController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{notification}', [NotificationCenterController::class, 'show'])->name('notifications.show');
+    Route::post('/notifications/{notification}/read', [NotificationCenterController::class, 'markRead'])->name('notifications.mark-read');
+    Route::post('/notifications/{notification}/unread', [NotificationCenterController::class, 'markUnread'])->name('notifications.mark-unread');
+    Route::post('/notifications/read-all', [NotificationCenterController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::get('/notifications/unread/count', [NotificationCenterController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::delete('/notifications/{notification}', [NotificationCenterController::class, 'destroy'])->name('notifications.destroy');
+
+    // Audit Logs
+    Route::get('/audit-logs', [\App\Http\Controllers\AuditController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/{auditLog}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audit-logs.show');
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -172,7 +247,25 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/appointments', [ReportController::class, 'appointment'])->name('reports.appointment');
     Route::get('/reports/consultations', [ReportController::class, 'consultation'])->name('reports.consultation');
     Route::get('/reports/financial', [ReportController::class, 'financial'])->name('reports.financial');
+    Route::get('/reports/financial/export', [ReportController::class, 'financialExport'])->name('reports.financial.export');
+    Route::get('/reports/expense', [ReportController::class, 'expenseReport'])->name('reports.expense');
+    Route::get('/reports/profit', [ReportController::class, 'profitReport'])->name('reports.profit');
+    Route::get('/reports/payment-method', [ReportController::class, 'paymentMethodReport'])->name('reports.payment-method');
     Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
+
+    // Analytics
+    Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/export/{type}', [\App\Http\Controllers\AnalyticsController::class, 'export'])->name('analytics.export');
+
+    // Print / Document Output
+    Route::get('/print/appointments/{appointment}', [\App\Http\Controllers\PrintController::class, 'appointment'])->name('print.appointment');
+    Route::get('/print/queue/{ticket}', [\App\Http\Controllers\PrintController::class, 'queueTicket'])->name('print.queue-ticket');
+    Route::get('/print/prescriptions/{prescription}', [\App\Http\Controllers\PrintController::class, 'prescription'])->name('print.prescription');
+    Route::get('/print/investigations/{investigation}', [\App\Http\Controllers\PrintController::class, 'investigation'])->name('print.investigation');
+    Route::get('/print/invoices/{invoice}', [\App\Http\Controllers\PrintController::class, 'invoice'])->name('print.invoice');
+    Route::get('/print/payments/{payment}/receipt', [\App\Http\Controllers\PrintController::class, 'receipt'])->name('print.receipt');
+    Route::get('/print/patients/{patient}/medical-record', [\App\Http\Controllers\PrintController::class, 'medicalRecord'])->name('print.medical-record');
+    Route::get('/print/reports/{type}', [\App\Http\Controllers\PrintController::class, 'report'])->name('print.report');
 });
 
 require __DIR__ . '/auth.php';

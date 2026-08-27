@@ -6,7 +6,10 @@ use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Consultation;
 use App\Models\Doctor;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Medicine;
 use App\Models\Payment;
 use App\Models\Patient;
@@ -134,32 +137,24 @@ class ReportController extends Controller
     {
         Gate::authorize('report.financial');
 
-        $query = Invoice::query();
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->get('date_to', now()->toDateString());
+        $status = $request->get('status');
+
+        $invoiceQuery = Invoice::query();
+        $invoiceQuery->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+        if ($status) {
+            $invoiceQuery->where('status', $status);
         }
 
-        $totalInvoiced = (clone $query)->whereNotIn('status', ['cancelled'])->sum('total');
-        $totalPaid = (clone $query)->sum('amount_paid');
-        $totalOutstanding = (clone $query)->whereIn('status', ['issued', 'partially_paid'])->sum('balance');
+        $totalInvoiced = (clone $invoiceQuery)->whereNotIn('status', ['cancelled'])->sum('total');
+        $totalPaid = (clone $invoiceQuery)->sum('amount_paid');
+        $totalOutstanding = (clone $invoiceQuery)->whereIn('status', ['issued', 'partially_paid'])->sum('balance');
+        $cancelledTotal = (clone $invoiceQuery)->where('status', 'cancelled')->sum('total');
+        $invoiceCount = (clone $invoiceQuery)->count();
 
         $paymentQuery = Payment::query();
-        if ($request->filled('date_from')) {
-            $paymentQuery->whereDate('paid_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $paymentQuery->whereDate('paid_at', '<=', $request->date_to);
-        }
-        if ($request->filled('payment_method')) {
-            $paymentQuery->where('payment_method', $request->payment_method);
-        }
-
+        $paymentQuery->whereBetween('paid_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
         $totalPayments = (clone $paymentQuery)->sum('amount');
         $paymentCount = (clone $paymentQuery)->count();
         $paymentsByMethod = (clone $paymentQuery)
@@ -167,11 +162,186 @@ class ReportController extends Controller
             ->groupBy('payment_method')
             ->get();
 
-        $invoices = $query->with(['patient', 'doctor'])->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $expenseQuery = Expense::active();
+        $expenseQuery->whereBetween('expense_date', [$dateFrom, $dateTo]);
+        $totalExpenses = (clone $expenseQuery)->sum('amount');
+        $expenseCount = (clone $expenseQuery)->count();
+        $expensesByCategory = (clone $expenseQuery)
+            ->join('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+            ->select('expense_categories.name as category_name', DB::raw('SUM(expenses.amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('expense_categories.name')
+            ->get();
+
+        $netIncome = $totalPayments - $totalExpenses;
+
+        $revenueBySource = InvoiceItem::whereHas('invoice', function ($q) use ($dateFrom, $dateTo) {
+            $q->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+              ->whereNotIn('status', ['cancelled']);
+        })
+            ->select('type', DB::raw('SUM(total) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('type')
+            ->get();
+
+        $invoices = $invoiceQuery->with(['patient', 'doctor'])->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
         return view('reports.financial', compact(
-            'invoices', 'totalInvoiced', 'totalPaid', 'totalOutstanding',
-            'totalPayments', 'paymentCount', 'paymentsByMethod'
+            'invoices', 'totalInvoiced', 'totalPaid', 'totalOutstanding', 'cancelledTotal',
+            'totalPayments', 'paymentCount', 'paymentsByMethod',
+            'totalExpenses', 'expenseCount', 'expensesByCategory',
+            'netIncome', 'revenueBySource', 'invoiceCount',
+            'dateFrom', 'dateTo'
+        ));
+    }
+
+    public function financialExport(Request $request)
+    {
+        Gate::authorize('report.financial');
+
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->get('date_to', now()->toDateString());
+
+        $invoices = Invoice::with(['patient', 'doctor'])
+            ->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="financial-report-' . $dateFrom . '-to-' . $dateTo . '.csv"',
+        ];
+
+        $callback = function () use ($invoices, $dateFrom, $dateTo) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Financial Report', $dateFrom, 'to', $dateTo]);
+            fputcsv($handle, []);
+            fputcsv($handle, ['Invoice #', 'Patient', 'Date', 'Status', 'Total', 'Paid', 'Balance']);
+
+            foreach ($invoices as $invoice) {
+                fputcsv($handle, [
+                    $invoice->invoice_number,
+                    $invoice->patient->name ?? '-',
+                    $invoice->created_at->format('Y-m-d'),
+                    $invoice->status,
+                    number_format($invoice->total, 2),
+                    number_format($invoice->amount_paid, 2),
+                    number_format($invoice->balance, 2),
+                ]);
+            }
+
+            fputcsv($handle, []);
+            fputcsv($handle, ['Total Invoiced', number_format($invoices->sum('total'), 2)]);
+            fputcsv($handle, ['Total Paid', number_format($invoices->sum('amount_paid'), 2)]);
+            fputcsv($handle, ['Outstanding', number_format($invoices->whereNotIn('status', ['cancelled', 'paid'])->sum('balance'), 2)]);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function expenseReport(Request $request)
+    {
+        Gate::authorize('report.financial');
+
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->get('date_to', now()->toDateString());
+        $categoryId = $request->get('category_id');
+
+        $query = Expense::with(['expenseCategory', 'createdBy'])
+            ->whereBetween('expense_date', [$dateFrom, $dateTo])
+            ->where('status', 'active');
+
+        if ($categoryId) {
+            $query->where('expense_category_id', $categoryId);
+        }
+
+        $expenses = $query->orderBy('expense_date', 'desc')->paginate(20)->withQueryString();
+
+        $totalExpenses = (clone $query)->without('createdBy')->sum('amount');
+        $byCategory = Expense::select('expense_category_id', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->whereBetween('expense_date', [$dateFrom, $dateTo])
+            ->where('status', 'active')
+            ->groupBy('expense_category_id')
+            ->join('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+            ->select('expense_categories.name as category_name', 'expenses.expense_category_id', DB::raw('SUM(expenses.amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('expense_categories.name', 'expenses.expense_category_id')
+            ->get();
+
+        $categories = ExpenseCategory::active()->orderBy('name')->get();
+
+        return view('reports.expense', compact(
+            'expenses', 'totalExpenses', 'byCategory', 'categories', 'dateFrom', 'dateTo'
+        ));
+    }
+
+    public function profitReport(Request $request)
+    {
+        Gate::authorize('report.financial');
+
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->get('date_to', now()->toDateString());
+
+        $totalRevenue = Payment::whereBetween('paid_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->sum('amount');
+
+        $totalExpenses = Expense::active()
+            ->whereBetween('expense_date', [$dateFrom, $dateTo])
+            ->sum('amount');
+
+        $netIncome = $totalRevenue - $totalExpenses;
+
+        $dailyRevenue = Payment::whereBetween('paid_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->select(DB::raw('DATE(paid_at) as date'), DB::raw('SUM(amount) as total'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $dailyExpenses = Expense::active()
+            ->whereBetween('expense_date', [$dateFrom, $dateTo])
+            ->select('expense_date as date', DB::raw('SUM(amount) as total'))
+            ->groupBy('expense_date')
+            ->orderBy('expense_date')
+            ->get();
+
+        $dailyData = collect();
+        $startDate = \Carbon\Carbon::parse($dateFrom);
+        $endDate = \Carbon\Carbon::parse($dateTo);
+        while ($startDate->lte($endDate)) {
+            $dateStr = $startDate->toDateString();
+            $rev = $dailyRevenue->firstWhere('date', $dateStr)?->total ?? 0;
+            $exp = $dailyExpenses->firstWhere('date', $dateStr)?->total ?? 0;
+            $dailyData->push([
+                'date' => $dateStr,
+                'revenue' => $rev,
+                'expenses' => $exp,
+                'net' => $rev - $exp,
+            ]);
+            $startDate->addDay();
+        }
+
+        return view('reports.profit', compact(
+            'totalRevenue', 'totalExpenses', 'netIncome', 'dailyData', 'dateFrom', 'dateTo'
+        ));
+    }
+
+    public function paymentMethodReport(Request $request)
+    {
+        Gate::authorize('report.financial');
+
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->get('date_to', now()->toDateString());
+
+        $paymentsByMethod = Payment::whereBetween('paid_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->select('payment_method', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('payment_method')
+            ->orderBy('total', 'desc')
+            ->get();
+
+        $totalPayments = $paymentsByMethod->sum('total');
+        $totalCount = $paymentsByMethod->sum('count');
+
+        return view('reports.payment-method', compact(
+            'paymentsByMethod', 'totalPayments', 'totalCount', 'dateFrom', 'dateTo'
         ));
     }
 

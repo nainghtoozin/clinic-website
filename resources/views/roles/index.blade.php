@@ -61,14 +61,20 @@
                                     @endcan
                                     @can('role.delete')
                                         @if ($role->name !== 'super-admin')
-                                            <form action="{{ route('roles.destroy', $role) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-sm btn-outline-danger" title="Delete"
-                                                    onclick="return confirm('Delete this role?')">
+                                            @if ($role->users_count > 0)
+                                                <span class="btn btn-sm btn-outline-secondary disabled" title="Cannot delete - has assigned users">
                                                     <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+                                                </span>
+                                            @else
+                                                <form action="{{ route('roles.destroy', $role) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                                        onclick="return confirm('Delete this role?')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     @endcan
                                 </div>
@@ -78,7 +84,7 @@
                         <tr>
                             <td colspan="4" class="text-center text-muted py-5">
                                 <i class="bi bi-shield-lock fs-1 d-block mb-2"></i>
-                                <div class="fw-medium text-dark">No roles found</div>
+                                <div class="fw-medium">No roles found</div>
                                 @can('role.create')
                                     <div class="mt-3">
                                         <a href="{{ route('roles.create') }}" class="btn btn-sm btn-primary">

@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\QueueTicket;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -125,6 +126,17 @@ class QueueController extends Controller
             return $ticket;
         });
 
+        NotificationService::notify(
+            $ticket->doctor->user_id ?? auth()->id(),
+            'queue',
+            'Patient Checked In',
+            "Patient {$appointment->name} checked in with ticket {$ticket->ticket_number}.",
+            $ticket,
+            'queue',
+            'checkin',
+            route('queue.index')
+        );
+
         return redirect()->route('queue.index')
             ->with('success', "Patient checked in. Ticket number: {$ticket->ticket_number}");
     }
@@ -171,6 +183,17 @@ class QueueController extends Controller
             'notes'        => $validated['notes'] ?? null,
         ]);
 
+        NotificationService::notify(
+            $doctor->user_id ?? auth()->id(),
+            'queue',
+            'Walk-in Patient Added',
+            "Walk-in patient {$patient->name} added to queue with ticket {$ticket->ticket_number}.",
+            $ticket,
+            'queue',
+            'walkin',
+            route('queue.index')
+        );
+
         return redirect()->route('queue.index')
             ->with('success', "Walk-in patient added. Ticket number: {$ticket->ticket_number}");
     }
@@ -197,6 +220,17 @@ class QueueController extends Controller
             'status' => 'called',
             'called_at' => now(),
         ]);
+
+        NotificationService::notify(
+            $nextTicket->doctor->user_id ?? auth()->id(),
+            'queue',
+            'Patient Called',
+            "Patient with ticket {$nextTicket->ticket_number} has been called.",
+            $nextTicket,
+            'queue',
+            'called',
+            route('queue.index')
+        );
 
         return back()->with('success', "Called ticket: {$nextTicket->ticket_number}");
     }

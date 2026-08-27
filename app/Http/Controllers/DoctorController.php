@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\DayOfWeek;
 use App\Models\Doctor;
+use App\Models\DoctorUnavailableDate;
 use App\Models\Department;
 use App\Models\Location;
+use App\Services\AppointmentAvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
@@ -13,6 +15,10 @@ use Illuminate\Support\Facades\Storage;
 
 class DoctorController extends Controller
 {
+
+    public function __construct(
+        private AppointmentAvailabilityService $availability
+    ) {}
 
     public function index(Request $request)
     {
@@ -68,6 +74,8 @@ class DoctorController extends Controller
             'days.*'            => 'integer|in:' . implode(',', array_keys(DayOfWeek::options())),
             'start_time'        => 'required|date_format:H:i',
             'end_time'          => 'required|date_format:H:i|after:start_time',
+            'break_start'       => 'nullable|date_format:H:i',
+            'break_end'         => 'nullable|date_format:H:i|after:break_start',
             'title'             => 'nullable|string|max:255',
             'role'              => 'nullable|string|max:255',
             'qualifications'    => 'nullable|string',
@@ -106,6 +114,8 @@ class DoctorController extends Controller
             'available_days'      => $validated['days'],
             'start_time'          => $validated['start_time'],
             'end_time'            => $validated['end_time'],
+            'break_start'         => $validated['break_start'] ?? null,
+            'break_end'           => $validated['break_end'] ?? null,
             'user_id'             => auth()->id(),
         ]);
 
@@ -119,7 +129,21 @@ class DoctorController extends Controller
 
         $doctor->load('department', 'location');
 
-        return view('doctors.show', compact('doctor'));
+        $unavailableDates = $doctor->unavailableDates()
+            ->where('date', '>=', now()->toDateString())
+            ->orderBy('date')
+            ->get();
+
+        $upcomingAppointments = $doctor->appointments()
+            ->where('date', '>=', now()->toDateString())
+            ->whereNotIn('status', ['cancelled'])
+            ->with('patient')
+            ->orderBy('date')
+            ->orderBy('time')
+            ->limit(10)
+            ->get();
+
+        return view('doctors.show', compact('doctor', 'unavailableDates', 'upcomingAppointments'));
     }
 
     public function edit(Doctor $doctor)
@@ -144,6 +168,8 @@ class DoctorController extends Controller
             'days.*'            => 'integer|in:' . implode(',', array_keys(DayOfWeek::options())),
             'start_time'        => 'required|date_format:H:i',
             'end_time'          => 'required|date_format:H:i|after:start_time',
+            'break_start'       => 'nullable|date_format:H:i',
+            'break_end'         => 'nullable|date_format:H:i|after:break_start',
             'title'             => 'nullable|string|max:255',
             'role'              => 'nullable|string|max:255',
             'qualifications'    => 'nullable|string',
@@ -185,6 +211,8 @@ class DoctorController extends Controller
             'available_days'      => $validated['days'],
             'start_time'          => $validated['start_time'],
             'end_time'            => $validated['end_time'],
+            'break_start'         => $validated['break_start'] ?? null,
+            'break_end'           => $validated['break_end'] ?? null,
         ]);
 
         return redirect()->route('doctors.index')
@@ -212,17 +240,73 @@ class DoctorController extends Controller
         ]);
 
         $date = \Carbon\Carbon::parse($request->date);
-        $dayValue = (int) $date->dayOfWeekIso;
         $time = $request->time;
 
         $doctors = Doctor::where('is_available', true)
-            ->whereJsonContains('available_days', $dayValue)
-            ->where('start_time', '<=', $time)
-            ->where('end_time', '>', $time)
             ->with('department')
-            ->orderBy('name')
-            ->get();
+            ->get()
+            ->filter(function ($doctor) use ($date, $time) {
+                if (! $this->availability->isWorkingDay($doctor, $date)) {
+                    return false;
+                }
+
+                $hours = $this->availability->workingHours($doctor);
+                if ($hours === null) {
+                    return false;
+                }
+
+                if (! $this->availability->isWithinWorkingHours($doctor, $time)) {
+                    return false;
+                }
+
+                if ($this->availability->isUnavailableDate($doctor, $date)) {
+                    return false;
+                }
+
+                return true;
+            })
+            ->sortBy('name')
+            ->values();
 
         return response()->json($doctors);
+    }
+
+    public function storeUnavailableDate(Request $request, Doctor $doctor)
+    {
+        Gate::authorize('doctor.edit');
+
+        $validated = $request->validate([
+            'date'   => 'required|date|after_or_equal:today',
+            'reason' => 'nullable|string|max:100',
+            'type'   => 'required|in:leave,holiday,training,emergency,other',
+            'notes'  => 'nullable|string|max:1000',
+        ]);
+
+        if ($doctor->unavailableDates()->where('date', $validated['date'])->exists()) {
+            return back()->with('error', 'This date is already marked as unavailable.');
+        }
+
+        $doctor->unavailableDates()->create([
+            'date'       => $validated['date'],
+            'reason'     => $validated['reason'] ?? null,
+            'type'       => $validated['type'],
+            'notes'      => $validated['notes'] ?? null,
+            'created_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Unavailable date added successfully.');
+    }
+
+    public function destroyUnavailableDate(Doctor $doctor, DoctorUnavailableDate $unavailableDate)
+    {
+        Gate::authorize('doctor.edit');
+
+        if ($unavailableDate->doctor_id !== $doctor->id) {
+            abort(403);
+        }
+
+        $unavailableDate->delete();
+
+        return back()->with('success', 'Unavailable date removed.');
     }
 }

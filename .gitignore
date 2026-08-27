@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/dist-build-fixed
+/dist-final
+/dist-release
+/win-unpacked

@@ -59,6 +59,11 @@ class Consultation extends Model
         return $this->hasOne(Invoice::class);
     }
 
+    public function investigations()
+    {
+        return $this->hasMany(Investigation::class);
+    }
+
     public function isDraft(): bool
     {
         return $this->status === 'draft';

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\ClinicSettingsService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'invoice_number',
         'patient_id',
@@ -45,19 +49,22 @@ class Invoice extends Model
 
     public static function generateInvoiceNumber(): string
     {
+        $prefix = ClinicSettingsService::get('invoice.prefix', 'INV');
+        $seqLen = ClinicSettingsService::getInt('invoice.sequence_length', 4);
         $today = now()->format('Ymd');
-        $prefix = "INV-{$today}-";
-        $lastInvoice = static::where('invoice_number', 'like', "{$prefix}%")
+        $fullPrefix = "{$prefix}-{$today}-";
+        $lastInvoice = static::where('invoice_number', 'like', "{$fullPrefix}%")
             ->orderByDesc('invoice_number')
             ->value('invoice_number');
 
-        if ($lastInvoice && preg_match('/^INV-\d{8}-(\d{4})$/', $lastInvoice, $matches)) {
+        $regex = '/^' . preg_quote($prefix) . '-\d{8}-(\d{' . $seqLen . '})$/';
+        if ($lastInvoice && preg_match($regex, $lastInvoice, $matches)) {
             $nextNumber = (int) $matches[1] + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return $fullPrefix . str_pad($nextNumber, $seqLen, '0', STR_PAD_LEFT);
     }
 
     public function patient()
@@ -87,7 +94,7 @@ class Invoice extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class)->orderByDesc('paid_at');
     }
 
     public function recalculateTotals(): void
@@ -149,6 +156,27 @@ class Invoice extends Model
     public function canReceivePayment(): bool
     {
         return in_array($this->status, ['issued', 'partially_paid']);
+    }
+
+    public function canBeDeleted(): bool
+    {
+        return $this->isCancelled() && !$this->payments()->exists();
+    }
+
+    public function deleteBlockReason(): string
+    {
+        if (!$this->isCancelled()) {
+            return 'Only cancelled invoices can be deleted.';
+        }
+        if ($this->payments()->exists()) {
+            return 'This invoice has payment records. Payments must be reversed before deletion.';
+        }
+        return '';
+    }
+
+    public function scopeNotDeleted($query)
+    {
+        return $query->whereNull('deleted_at');
     }
 
     public function getStatusBadgeClass(): string

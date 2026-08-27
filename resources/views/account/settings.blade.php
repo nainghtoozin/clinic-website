@@ -16,10 +16,11 @@
         $calView    = $settings['preferences']['calendar_view'] ?? 'month';
         $weekStart  = $settings['preferences']['week_starts_on'] ?? 'sunday';
         $showWknd   = (bool) ($settings['preferences']['show_weekends'] ?? true);
+        $notifPrefs = $settings['notifications'] ?? [];
     @endphp
 
     <div class="row g-4" x-data="{ activeSection: 'appearance' }"
-        x-init="const s = window.location.hash.slice(1); if (['profile','appearance','localization','preferences','security','account'].includes(s)) activeSection = s;">
+        x-init="const s = window.location.hash.slice(1); if (['profile','appearance','localization','preferences','notifications','security','account'].includes(s)) activeSection = s;">
         {{-- Section navigation --}}
         <div class="col-md-4 col-lg-3">
             <div class="card shadow-sm border-0">
@@ -43,6 +44,10 @@
                         <a class="nav-link text-start d-flex align-items-center" :class="activeSection === 'preferences' && 'active'"
                             href="#" @click.prevent="activeSection = 'preferences'">
                             <i class="bi bi-sliders me-2"></i>{{ __('app.settings.preferences') }}
+                        </a>
+                        <a class="nav-link text-start d-flex align-items-center" :class="activeSection === 'notifications' && 'active'"
+                            href="#" @click.prevent="activeSection = 'notifications'">
+                            <i class="bi bi-bell me-2"></i>Notifications
                         </a>
                         <a class="nav-link text-start d-flex align-items-center" :class="activeSection === 'security' && 'active'"
                             href="#" @click.prevent="activeSection = 'security'">
@@ -204,6 +209,59 @@
                     </button>
                 </div>
             </form>
+
+            {{-- Notifications --}}
+            <div x-show="activeSection === 'notifications'" x-cloak>
+                <form method="POST" action="{{ route('user.settings.store') }}">
+                    @csrf
+                    <input type="hidden" name="active_section" value="notifications">
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-bell me-2"></i>Notification Preferences</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Choose which notifications you want to receive.</p>
+
+                            <div class="row g-3">
+                                @foreach([
+                                    'appointment_notifications' => ['Appointment', 'bi-calendar-check'],
+                                    'queue_notifications' => ['Queue', 'bi-people'],
+                                    'consultation_notifications' => ['Consultation', 'bi-clipboard2-pulse'],
+                                    'prescription_notifications' => ['Prescription', 'bi-capsule'],
+                                    'investigation_notifications' => ['Investigation', 'bi-flask'],
+                                    'inventory_notifications' => ['Inventory', 'bi-box-seam'],
+                                    'expiry_notifications' => ['Expiry Alerts', 'bi-exclamation-triangle'],
+                                    'invoice_notifications' => ['Invoice', 'bi-receipt'],
+                                    'payment_notifications' => ['Payment', 'bi-credit-card'],
+                                    'expense_notifications' => ['Expense', 'bi-cash'],
+                                    'communication_notifications' => ['Communication', 'bi-chat-dots'],
+                                    'backup_notifications' => ['Backup', 'bi-cloud-download'],
+                                    'system_notifications' => ['System', 'bi-gear'],
+                                ] as $key => [$label, $icon])
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="notifications[{{ $key }}]" value="0">
+                                            <input id="{{ $key }}" type="checkbox" class="form-check-input"
+                                                name="notifications[{{ $key }}]" value="1"
+                                                @checked($notifPrefs[$key] ?? true)>
+                                            <label for="{{ $key }}" class="form-check-label">
+                                                <i class="bi {{ $icon }} me-1"></i> {{ $label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2 me-1"></i> Save Notification Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
 
             {{-- Security (own form: change password) --}}
             <div x-show="activeSection === 'security'" x-cloak>

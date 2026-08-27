@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\Prescription;
 use App\Models\PrescriptionItem;
 use Illuminate\Http\Request;
+use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -131,6 +132,8 @@ class PrescriptionController extends Controller
             return $prescription;
         });
 
+        AuditService::logCreated($prescription, 'Prescription');
+
         return redirect()->route('prescriptions.show', $prescription)
             ->with('success', 'Prescription created successfully.');
     }
@@ -173,6 +176,8 @@ class PrescriptionController extends Controller
             'items.*.quantity'  => 'required|integer|min:1',
         ]);
 
+        $old = $prescription->toArray();
+
         DB::transaction(function () use ($prescription, $validated) {
             $prescription->update([
                 'patient_id'      => $validated['patient_id'],
@@ -197,6 +202,8 @@ class PrescriptionController extends Controller
             }
         });
 
+        AuditService::logUpdated($prescription, 'Prescription', $old, $validated);
+
         return redirect()->route('prescriptions.show', $prescription)
             ->with('success', 'Prescription updated successfully.');
     }
@@ -205,6 +212,7 @@ class PrescriptionController extends Controller
     {
         Gate::authorize('prescription.delete');
 
+        AuditService::logDeleted($prescription, 'Prescription');
         $prescription->delete();
 
         return redirect()->route('prescriptions.index')

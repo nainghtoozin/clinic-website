@@ -203,6 +203,38 @@
                 </div>
             </div>
 
+            {{-- Investigations --}}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-clipboard2-data me-2"></i>Investigations</h6>
+                    @can('investigation.create')
+                        <a href="{{ route('investigations.create', ['consultation_id' => $consultation->id, 'patient_id' => $consultation->patient_id]) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Add
+                        </a>
+                    @endcan
+                </div>
+                <div class="card-body">
+                    @if ($consultation->investigations->isEmpty())
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No investigations yet
+                        </div>
+                    @else
+                        @foreach ($consultation->investigations as $inv)
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <a href="{{ route('investigations.show', $inv) }}" class="fw-semibold text-decoration-none">
+                                        {{ $inv->labTest->name ?? '-' }}
+                                    </a>
+                                    <div class="small text-muted">{{ $inv->requested_date ? fmt_date($inv->requested_date) : '' }}</div>
+                                </div>
+                                <span class="badge {{ $inv->getStatusBadgeClass() }}">{{ $inv->getStatusLabel() }}</span>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+
             {{-- Billing --}}
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">

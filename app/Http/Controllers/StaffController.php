@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Doctor;
 use App\Models\User;
+use App\Services\AuditService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
 
 class StaffController extends Controller
@@ -58,7 +61,7 @@ class StaffController extends Controller
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
             'role'     => 'required|exists:roles,name',
             'phone'    => 'nullable|string|max:50',
             'position' => 'nullable|string|max:100',
@@ -76,6 +79,8 @@ class StaffController extends Controller
 
         $user->assignRole($validated['role']);
 
+        AuditService::logCreated($user, 'Staff');
+
         if (!empty($validated['doctor_id'])) {
             Doctor::where('id', $validated['doctor_id'])->update(['user_id' => $user->id]);
         }
@@ -88,7 +93,7 @@ class StaffController extends Controller
     {
         Gate::authorize('staff.view');
 
-        $staff->load(['roles', 'doctor']);
+        $staff->load(['roles', 'doctor.department']);
 
         return view('staff.show', compact('staff'));
     }
@@ -113,13 +118,16 @@ class StaffController extends Controller
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email,' . $staff->id,
-            'password' => 'nullable|min:6|confirmed',
+            'password' => ['nullable', Password::defaults(), 'confirmed'],
             'role'     => 'required|exists:roles,name',
             'phone'    => 'nullable|string|max:50',
             'position' => 'nullable|string|max:100',
             'is_active' => 'required|boolean',
             'doctor_id' => 'nullable|exists:doctors,id',
         ]);
+
+        $oldRoles = $staff->roles->pluck('name')->toArray();
+        $old = $staff->toArray();
 
         $updateData = [
             'name'      => $validated['name'],
@@ -135,6 +143,9 @@ class StaffController extends Controller
 
         $staff->update($updateData);
         $staff->syncRoles($validated['role']);
+
+        AuditService::logUpdated($staff, 'Staff', $old, $validated);
+        AuditService::logRoleChanged($staff->id, $oldRoles, [$validated['role']]);
 
         if (!empty($validated['doctor_id'])) {
             Doctor::where('user_id', $staff->id)->update(['user_id' => null]);
@@ -155,7 +166,19 @@ class StaffController extends Controller
             return back()->with('error', 'You cannot deactivate your own account');
         }
 
+        $old = $staff->toArray();
         $staff->update(['is_active' => false]);
+        AuditService::logUpdated($staff, 'Staff', $old, ['is_active' => false]);
+
+        NotificationService::notify(
+            $staff->id,
+            'system',
+            'Account Deactivated',
+            'Your staff account has been deactivated. Please contact an administrator.',
+            $staff,
+            'system',
+            'deactivated'
+        );
 
         return back()->with('success', 'Staff member deactivated');
     }
@@ -168,7 +191,9 @@ class StaffController extends Controller
             return back()->with('error', 'You cannot change your own status');
         }
 
+        $old = $staff->toArray();
         $staff->update(['is_active' => !$staff->is_active]);
+        AuditService::logUpdated($staff, 'Staff', $old, ['is_active' => $staff->is_active]);
 
         $status = $staff->is_active ? 'activated' : 'deactivated';
         return back()->with('success', "Staff member {$status}");

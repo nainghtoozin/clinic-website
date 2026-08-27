@@ -32,10 +32,13 @@ return new class extends Migration
             $table->foreignId('inventory_batch_id')->nullable()->after('medicine_id')
                 ->constrained('inventory_batches')->nullOnDelete();
             $table->integer('balance_before')->nullable()->after('quantity');
-            $table->enum('type', ['opening', 'stock_in', 'stock_out', 'adjustment', 'dispensed', 'expired'])
-                ->change();
             $table->index('inventory_batch_id');
         });
+
+        $driver = Schema::getConnection()->getDriverName();
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE stock_movements MODIFY type ENUM('opening','stock_in','stock_out','adjustment','dispensed','expired') NOT NULL DEFAULT 'stock_in'");
+        }
 
         // Safe backfill: convert the existing single-total medicine stock into a
         // default batch per medicine so no existing stock is lost or hidden.
@@ -70,8 +73,12 @@ return new class extends Migration
             $table->dropIndex(['inventory_batch_id']);
             $table->dropForeign(['inventory_batch_id']);
             $table->dropColumn(['inventory_batch_id', 'balance_before']);
-            $table->enum('type', ['opening', 'stock_in', 'stock_out', 'adjustment'])->change();
         });
+
+        $driver = Schema::getConnection()->getDriverName();
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE stock_movements MODIFY type ENUM('opening','stock_in','stock_out','adjustment') NOT NULL DEFAULT 'stock_in'");
+        }
 
         Schema::dropIfExists('inventory_batches');
     }

@@ -132,6 +132,19 @@
                                             </a>
                                         @endif
                                     @endcan
+                                    @can('invoice.delete')
+                                        @if ($invoice->isCancelled() && $invoice->payments()->count() === 0)
+                                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
+                                                data-bs-toggle="modal" data-bs-target="#deleteInvoiceModal"
+                                                data-invoice-id="{{ $invoice->id }}"
+                                                data-invoice-number="{{ $invoice->invoice_number }}"
+                                                data-invoice-patient="{{ $invoice->patient?->name ?? '-' }}"
+                                                data-invoice-date="{{ fmt_date($invoice->created_at) }}"
+                                                data-invoice-total="${{ number_format($invoice->total, 2) }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        @endif
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -165,4 +178,83 @@
             <div>{{ $invoices->links() }}</div>
         </div>
     @endif
+
+    {{-- Delete Confirmation Modal --}}
+    @can('invoice.delete')
+    <div class="modal fade" id="deleteInvoiceModal" tabindex="-1" aria-labelledby="deleteInvoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="" id="deleteInvoiceForm">
+                    @csrf
+                    @method('DELETE')
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title" id="deleteInvoiceModalLabel">
+                            <i class="bi bi-exclamation-triangle text-danger me-2"></i>Delete Invoice
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                            <i class="bi bi-info-circle mt-1"></i>
+                            <div>This action will soft-delete the invoice and reverse any associated inventory effects. This cannot be undone.</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label text-muted small">Invoice #</label>
+                                    <div class="fw-semibold" id="modal-invoice-number">-</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-muted small">Patient</label>
+                                    <div class="fw-semibold" id="modal-invoice-patient">-</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-muted small">Date</label>
+                                    <div id="modal-invoice-date">-</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-muted small">Total</label>
+                                    <div class="fw-semibold" id="modal-invoice-total">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Deletion Reason <span class="text-danger">*</span></label>
+                            <textarea name="reason" class="form-control" rows="3" required
+                                placeholder="Enter the reason for deleting this invoice..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i> Confirm Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
+
+    @push('scripts')
+    <script>
+        const deleteInvoiceModal = document.getElementById('deleteInvoiceModal');
+        if (deleteInvoiceModal) {
+            deleteInvoiceModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const invoiceId = button.getAttribute('data-invoice-id');
+                const invoiceNumber = button.getAttribute('data-invoice-number');
+                const invoicePatient = button.getAttribute('data-invoice-patient');
+                const invoiceDate = button.getAttribute('data-invoice-date');
+                const invoiceTotal = button.getAttribute('data-invoice-total');
+
+                document.getElementById('deleteInvoiceForm').action = `/invoices/${invoiceId}`;
+                document.getElementById('modal-invoice-number').textContent = invoiceNumber;
+                document.getElementById('modal-invoice-patient').textContent = invoicePatient;
+                document.getElementById('modal-invoice-date').textContent = invoiceDate;
+                document.getElementById('modal-invoice-total').textContent = invoiceTotal;
+            });
+        }
+    </script>
+    @endpush
 </x-auth-layout>

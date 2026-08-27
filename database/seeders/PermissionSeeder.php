@@ -60,6 +60,7 @@ class PermissionSeeder extends Seeder
             'invoice.create',
             'invoice.edit',
             'invoice.cancel',
+            'invoice.delete',
 
             // Payment
             'payment.view',
@@ -117,6 +118,49 @@ class PermissionSeeder extends Seeder
             'report.consultation',
             'report.financial',
             'report.inventory',
+            'report.analytics',
+
+            // Lab Tests
+            'lab_test.view',
+            'lab_test.create',
+            'lab_test.edit',
+            'lab_test.delete',
+
+            // Investigations
+            'investigation.view',
+            'investigation.create',
+            'investigation.edit',
+            'investigation.delete',
+
+            // Communication
+            'communication.view',
+            'communication.create',
+            'communication.edit',
+            'communication.delete',
+
+            // Expenses
+            'expense.view',
+            'expense.create',
+            'expense.edit',
+            'expense.delete',
+
+            // Expense Categories
+            'expense_category.view',
+            'expense_category.create',
+            'expense_category.edit',
+            'expense_category.delete',
+
+            // Backup
+            'backup.view',
+            'backup.create',
+            'backup.restore',
+            'backup.delete',
+
+            // Audit
+            'audit.view',
+
+            // Notifications
+            'notification.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -134,6 +178,10 @@ class PermissionSeeder extends Seeder
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminPermissions = Permission::whereNotIn('name', ['role.view', 'role.create', 'role.edit', 'role.delete'])->get();
         $admin->syncPermissions($adminPermissions);
+
+        // Ensure report.analytics and invoice.delete are assigned to admin
+        $admin->givePermissionTo('report.analytics');
+        $admin->givePermissionTo('invoice.delete');
 
         // Doctor — clinical + patient access
         $doctor = Role::firstOrCreate(['name' => 'doctor', 'guard_name' => 'web']);
@@ -165,6 +213,15 @@ class PermissionSeeder extends Seeder
             'report.appointment',
             'report.consultation',
             'report.inventory',
+            'lab_test.view',
+            'investigation.view',
+            'investigation.create',
+            'investigation.edit',
+            'communication.view',
+            'communication.create',
+            'communication.edit',
+            'expense.view',
+            'notification.view',
         ]);
 
         // Receptionist — patient registration, appointments, check-in, billing
@@ -194,6 +251,14 @@ class PermissionSeeder extends Seeder
             'dashboard.view',
             'report.patient',
             'report.appointment',
+            'communication.view',
+            'communication.create',
+            'communication.edit',
+            'communication.delete',
+            'expense.view',
+            'expense.create',
+            'expense_category.view',
+            'notification.view',
         ]);
 
         // Nurse — patient, queue, consultation-related
@@ -218,6 +283,13 @@ class PermissionSeeder extends Seeder
             'report.patient',
             'report.appointment',
             'report.consultation',
+            'lab_test.view',
+            'investigation.view',
+            'investigation.edit',
+            'communication.view',
+            'communication.create',
+            'communication.edit',
+            'notification.view',
         ]);
     }
 }

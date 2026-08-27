@@ -67,7 +67,7 @@
                                     </div>
                                     <div class="d-flex flex-wrap gap-1 mb-1">
                                         @foreach ($permissions as $permission)
-                                            <span class="badge bg-light text-dark border">
+                                            <span class="badge border notification-metadata-card">
                                                 {{ str_replace($group . '.', '', $permission->name) }}
                                             </span>
                                         @endforeach

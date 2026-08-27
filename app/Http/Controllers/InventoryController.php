@@ -6,6 +6,7 @@ use App\Models\InventoryBatch;
 use App\Models\Medicine;
 use App\Models\Prescription;
 use App\Models\StockMovement;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -232,6 +233,16 @@ class InventoryController extends Controller
             $batch->stockIn($validated['quantity'], $validated['reason'] ?? 'Stock replenishment', auth()->id());
         });
 
+        NotificationService::notifyAdmins(
+            'inventory',
+            'Stock Replenished',
+            "{$medicine->name}: +{$validated['quantity']} units added to batch {$validated['batch_number']}.",
+            $medicine,
+            'inventory',
+            'stock_in',
+            route('medicines.show', $medicine)
+        );
+
         return redirect()->route('medicines.show', $medicine)
             ->with('success', "Stock in: +{$validated['quantity']} units recorded for batch {$validated['batch_number']}.");
     }
@@ -325,6 +336,16 @@ class InventoryController extends Controller
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }
+
+        NotificationService::notifyAdmins(
+            'expiry',
+            'Expired Stock Written Off',
+            "Batch {$batch->batch_number} of {$batch->medicine->name} has been written off as expired.",
+            $batch,
+            'inventory',
+            'expire_batch',
+            route('medicines.show', $batch->medicine_id)
+        );
 
         return redirect()->route('medicines.show', $batch->medicine_id)
             ->with('success', "Expired stock from batch {$batch->batch_number} written off.");

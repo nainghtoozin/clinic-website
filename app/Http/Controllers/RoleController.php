@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Role;
@@ -41,6 +42,8 @@ class RoleController extends Controller
             $role->syncPermissions($request->permissions);
         }
 
+        AuditService::logCreated($role, 'Role');
+
         return redirect()->route('roles.index')->with('success', 'Role created successfully');
     }
 
@@ -74,8 +77,29 @@ class RoleController extends Controller
             'permissions' => 'nullable|array'
         ]);
 
+        $oldPermissions = $role->permissions->pluck('name')->toArray();
+        $oldName = $role->name;
+
         $role->update(['name' => $request->name]);
         $role->syncPermissions($request->permissions ?? []);
+
+        $newPermissions = $role->fresh()->permissions->pluck('name')->toArray();
+
+        $addedPermissions = array_diff($newPermissions, $oldPermissions);
+        $removedPermissions = array_diff($oldPermissions, $newPermissions);
+
+        AuditService::log(
+            'updated',
+            'Role',
+            $role,
+            "Role \"{$oldName}\" permissions updated",
+            ['permissions' => $oldPermissions, 'name' => $oldName],
+            ['permissions' => $newPermissions, 'name' => $request->name],
+            [
+                'added_permissions' => array_values($addedPermissions),
+                'removed_permissions' => array_values($removedPermissions),
+            ]
+        );
 
         return redirect()->route('roles.index')->with('success', 'Role updated successfully');
     }
@@ -83,7 +107,31 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         Gate::authorize('role.delete');
+
+        // Prevent deletion of super-admin role
+        if ($role->name === 'super-admin') {
+            return back()->with('error', 'The Super Admin role cannot be deleted.');
+        }
+
+        // Prevent deletion of role with assigned users
+        if ($role->users()->count() > 0) {
+            return back()->with('error', 'Cannot delete a role that has users assigned to it. Reassign users first.');
+        }
+
+        $roleName = $role->name;
+        $rolePermissions = $role->permissions->pluck('name')->toArray();
+
         $role->delete();
+
+        AuditService::log(
+            'deleted',
+            'Role',
+            $role,
+            "Role \"{$roleName}\" deleted",
+            ['name' => $roleName, 'permissions' => $rolePermissions],
+            null
+        );
+
         return back()->with('success', 'Role deleted');
     }
 }

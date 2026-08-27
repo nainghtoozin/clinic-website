@@ -16,7 +16,7 @@ return new class extends Migration
 
             // patient info
             $table->string('name');
-            $table->string('email');
+            $table->string('email')->nullable();
             $table->string('phone');
 
             // relations

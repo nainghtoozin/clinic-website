@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\QueueTicket;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\AuditService;
 use Illuminate\Support\Facades\Gate;
 
 class PatientController extends Controller
@@ -71,7 +72,8 @@ class PatientController extends Controller
 
         $validated['patient_number'] = Patient::generatePatientNumber();
 
-        Patient::create($validated);
+        $patient = Patient::create($validated);
+        AuditService::logCreated($patient, 'Patient');
 
         return redirect()->route('patients.index')
             ->with('success', 'Patient registered successfully');
@@ -136,7 +138,9 @@ class PatientController extends Controller
             'status'                => 'required|in:active,inactive,archived',
         ]);
 
+        $old = $patient->toArray();
         $patient->update($validated);
+        AuditService::logUpdated($patient, 'Patient', $old, $validated);
 
         return redirect()->route('patients.index')
             ->with('success', 'Patient updated successfully');
@@ -146,6 +150,7 @@ class PatientController extends Controller
     {
         Gate::authorize('patient.delete');
 
+        AuditService::logDeleted($patient, 'Patient');
         $patient->delete();
 
         return redirect()->route('patients.index')
@@ -158,8 +163,22 @@ class PatientController extends Controller
 
         $patient = Patient::withTrashed()->findOrFail($id);
         $patient->restore();
+        AuditService::logRestored($patient, 'Patient');
 
         return redirect()->route('patients.index')
             ->with('success', 'Patient restored successfully');
+    }
+
+    public function appointmentsJson(Patient $patient)
+    {
+        Gate::authorize('patient.view');
+
+        $appointments = $patient->appointments()
+            ->select('id', 'appointment_number', 'date', 'time')
+            ->latest('date')
+            ->limit(20)
+            ->get();
+
+        return response()->json($appointments);
     }
 }

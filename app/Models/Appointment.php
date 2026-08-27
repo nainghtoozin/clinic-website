@@ -65,6 +65,11 @@ class Appointment extends Model
         return $this->hasMany(AppointmentStatusHistory::class);
     }
 
+    public function communications()
+    {
+        return $this->hasMany(Communication::class);
+    }
+
     public static function generateAppointmentNumber(): string
     {
         $today = now()->format('Ymd');

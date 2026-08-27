@@ -30,8 +30,11 @@ class Doctor extends Model
         'available_days',
         'start_time',
         'end_time',
+        'break_start',
+        'break_end',
         'is_featured',
         'user_id',
+        'is_active',
     ];
 
     protected $casts = [
@@ -39,6 +42,7 @@ class Doctor extends Model
         'is_available' => 'boolean',
         'board_certified' => 'boolean',
         'is_featured' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function dayLabels(): array
@@ -46,6 +50,11 @@ class Doctor extends Model
         return collect($this->available_days)
             ->map(fn($d) => DayOfWeek::from($d)->label())
             ->toArray();
+    }
+
+    public function hasBreak(): bool
+    {
+        return !empty($this->break_start) && !empty($this->break_end);
     }
 
     public function department()
@@ -68,8 +77,27 @@ class Doctor extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function investigations()
+    {
+        return $this->hasMany(Investigation::class);
+    }
+
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function unavailableDates()
+    {
+        return $this->hasMany(DoctorUnavailableDate::class);
+    }
+
+    public function hasUnavailableDate($date): bool
+    {
+        $date = $date instanceof \Carbon\Carbon ? $date->toDateString() : \Carbon\Carbon::parse($date)->toDateString();
+
+        return DoctorUnavailableDate::where('doctor_id', $this->id)
+            ->whereDate('date', $date)
+            ->exists();
     }
 }

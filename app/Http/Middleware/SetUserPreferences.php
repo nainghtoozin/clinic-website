@@ -53,6 +53,9 @@ class SetUserPreferences
             'userTimeFormat' => $timeFormat,
             'userSidebar' => $sidebar,
             'userTableDensity' => $tableDensity,
+            'recentNotifications' => $user
+                ? \App\Models\Notification::where('user_id', $user->id)->latest()->limit(8)->get()
+                : collect(),
         ]);
 
         return $next($request);

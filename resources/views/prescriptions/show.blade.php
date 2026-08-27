@@ -6,6 +6,11 @@
                 <i class="bi bi-pencil me-1"></i> Edit
             </a>
         @endcan
+        @can('prescription.view')
+            <a href="{{ route('print.prescription', $prescription) }}" target="_blank" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-printer me-1"></i> Print
+            </a>
+        @endcan
         <a href="{{ route('prescriptions.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
             <i class="bi bi-arrow-left me-1"></i> Back
         </a>

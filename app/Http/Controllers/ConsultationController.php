@@ -8,6 +8,8 @@ use App\Models\Patient;
 use App\Models\QueueTicket;
 use App\Models\VitalSign;
 use Illuminate\Http\Request;
+use App\Services\AuditService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -151,6 +153,19 @@ class ConsultationController extends Controller
             return $consultation;
         });
 
+        AuditService::logCreated($consultation, 'Consultation');
+
+        NotificationService::notify(
+            $consultation->doctor->user_id ?? auth()->id(),
+            'consultation',
+            'Consultation Started',
+            "Consultation for patient {$consultation->patient->name} has been started.",
+            $consultation,
+            'consultation',
+            'created',
+            route('consultations.show', $consultation)
+        );
+
         return redirect()->route('consultations.show', $consultation)
             ->with('success', 'Consultation saved successfully.');
     }
@@ -159,7 +174,7 @@ class ConsultationController extends Controller
     {
         Gate::authorize('consultation.view');
 
-        $consultation->load(['patient', 'doctor', 'appointment', 'queueTicket', 'vitalSign', 'invoice', 'prescriptions.items.medicine']);
+        $consultation->load(['patient', 'doctor', 'appointment', 'queueTicket', 'vitalSign', 'invoice', 'prescriptions.items.medicine', 'investigations.labTest']);
 
         return view('consultations.show', compact('consultation'));
     }
@@ -212,6 +227,8 @@ class ConsultationController extends Controller
             $validated['oxygen_saturation']
         );
 
+        $old = $consultation->toArray();
+
         DB::transaction(function () use ($consultation, $validated, $vitalSignData) {
             $consultation->update($validated);
 
@@ -227,6 +244,8 @@ class ConsultationController extends Controller
             }
         });
 
+        AuditService::logUpdated($consultation, 'Consultation', $old, $validated);
+
         return redirect()->route('consultations.show', $consultation)
             ->with('success', 'Consultation updated successfully.');
     }
@@ -238,6 +257,8 @@ class ConsultationController extends Controller
         if ($consultation->isCompleted()) {
             return back()->with('error', 'Consultation is already completed.');
         }
+
+        $oldStatus = $consultation->status;
 
         DB::transaction(function () use ($consultation) {
             $consultation->update(['status' => 'completed']);
@@ -259,6 +280,19 @@ class ConsultationController extends Controller
                 }
             }
         });
+
+        AuditService::logStatusChange($consultation, 'Consultation', $oldStatus, 'completed');
+
+        NotificationService::notify(
+            $consultation->doctor->user_id ?? auth()->id(),
+            'consultation',
+            'Consultation Completed',
+            "Consultation for patient {$consultation->patient->name} has been completed.",
+            $consultation,
+            'consultation',
+            'completed',
+            route('consultations.show', $consultation)
+        );
 
         return redirect()->route('consultations.show', $consultation)
             ->with('success', 'Consultation completed successfully.');

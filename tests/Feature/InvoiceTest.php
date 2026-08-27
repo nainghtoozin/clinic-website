@@ -23,7 +23,7 @@ beforeEach(function () {
         'consultation.view', 'consultation.create', 'consultation.edit', 'consultation.complete',
         'medicine.view', 'medicine.create', 'medicine.edit', 'medicine.delete',
         'prescription.view', 'prescription.create', 'prescription.edit', 'prescription.delete',
-        'invoice.view', 'invoice.create', 'invoice.edit', 'invoice.cancel',
+        'invoice.view', 'invoice.create', 'invoice.edit', 'invoice.cancel', 'invoice.delete',
         'payment.view', 'payment.create', 'payment.cancel',
     ];
 
@@ -639,7 +639,9 @@ test('receipt is printable', function () {
     $response = $this->actingAs($this->user)->get(route('payments.receipt', $payment));
 
     $response->assertOk();
-    $response->assertSee('window.print()');
+    $response->assertSee('Payment Receipt')
+        ->assertSee('print-document')
+        ->assertSee('print-color-adjust');
 });
 
 // --- PATIENT BILLING HISTORY TEST ---
@@ -689,6 +691,162 @@ test('unauthorized user cannot record payment', function () {
     $user = User::factory()->create();
     $response = $this->actingAs($user)->get(route('payments.create'));
     $response->assertForbidden();
+});
+
+// --- INVOICE DELETION TESTS ---
+
+test('cancelled invoice can be deleted by authorized user', function () {
+    $this->user->givePermissionTo('invoice.delete');
+
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'cancelled',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 0.00,
+        'amount_paid' => 0.00,
+    ]);
+
+    $response = $this->actingAs($this->user)->delete(route('invoices.destroy', $invoice), [
+        'reason' => 'Test deletion reason',
+    ]);
+
+    $response->assertRedirect();
+    $this->assertSoftDeleted('invoices', ['id' => $invoice->id]);
+});
+
+test('non-cancelled invoice cannot be deleted', function () {
+    $this->user->givePermissionTo('invoice.delete');
+
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'issued',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 100.00,
+        'amount_paid' => 0.00,
+    ]);
+
+    $response = $this->actingAs($this->user)->delete(route('invoices.destroy', $invoice), [
+        'reason' => 'Test deletion reason',
+    ]);
+
+    $response->assertSessionHas('error');
+    $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'deleted_at' => null]);
+});
+
+test('invoice with payment cannot be deleted', function () {
+    $this->user->givePermissionTo('invoice.delete');
+
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'cancelled',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 0.00,
+        'amount_paid' => 100.00,
+    ]);
+
+    Payment::create([
+        'invoice_id' => $invoice->id,
+        'amount' => 100.00,
+        'payment_method' => 'cash',
+        'paid_at' => now(),
+        'recorded_by' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->delete(route('invoices.destroy', $invoice), [
+        'reason' => 'Test deletion reason',
+    ]);
+
+    $response->assertSessionHas('error');
+    $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'deleted_at' => null]);
+});
+
+test('unauthorized user cannot delete invoice', function () {
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'cancelled',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 0.00,
+        'amount_paid' => 0.00,
+    ]);
+
+    $user = User::factory()->create();
+    $response = $this->actingAs($user)->delete(route('invoices.destroy', $invoice), [
+        'reason' => 'Test deletion reason',
+    ]);
+
+    $response->assertForbidden();
+});
+
+test('invoice deletion requires reason', function () {
+    $this->user->givePermissionTo('invoice.delete');
+
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'cancelled',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 0.00,
+        'amount_paid' => 0.00,
+    ]);
+
+    $response = $this->actingAs($this->user)->delete(route('invoices.destroy', $invoice));
+
+    $response->assertSessionHasErrors('reason');
+});
+
+test('invoice deletion creates audit log', function () {
+    $this->user->givePermissionTo('invoice.delete');
+
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'cancelled',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 0.00,
+        'amount_paid' => 0.00,
+    ]);
+
+    $this->actingAs($this->user)->delete(route('invoices.destroy', $invoice), [
+        'reason' => 'Audit test reason',
+    ]);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'module' => 'Invoice',
+        'action' => 'deleted',
+        'user_id' => $this->user->id,
+    ]);
+});
+
+test('soft-deleted invoice is hidden from normal listing', function () {
+    $this->user->givePermissionTo('invoice.delete');
+
+    $invoice = Invoice::create([
+        'patient_id' => $this->patient->id,
+        'doctor_id' => $this->doctor->id,
+        'status' => 'cancelled',
+        'subtotal' => 100.00,
+        'total' => 100.00,
+        'balance' => 0.00,
+        'amount_paid' => 0.00,
+    ]);
+
+    $this->actingAs($this->user)->delete(route('invoices.destroy', $invoice), [
+        'reason' => 'Test deletion reason',
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('invoices.index'));
+    $response->assertOk();
+    $response->assertDontSee($invoice->invoice_number);
 });
 
 // --- REGRESSION TESTS ---

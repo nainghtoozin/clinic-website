@@ -233,7 +233,7 @@
 
             {{-- Time --}}
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="start_time" class="form-label fw-semibold">
                         Start Time <span class="text-danger">*</span>
                     </label>
@@ -245,7 +245,7 @@
                     @enderror
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="end_time" class="form-label fw-semibold">
                         End Time <span class="text-danger">*</span>
                     </label>
@@ -253,6 +253,30 @@
                         class="form-control @error('end_time') is-invalid @enderror"
                         value="{{ old('end_time', $doctor->end_time ?? '') }}" required>
                     @error('end_time')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4">
+                    <label for="break_start" class="form-label fw-semibold">
+                        Break Start
+                    </label>
+                    <input type="time" id="break_start" name="break_start"
+                        class="form-control @error('break_start') is-invalid @enderror"
+                        value="{{ old('break_start', $doctor->break_start ?? '') }}">
+                    @error('break_start')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4">
+                    <label for="break_end" class="form-label fw-semibold">
+                        Break End
+                    </label>
+                    <input type="time" id="break_end" name="break_end"
+                        class="form-control @error('break_end') is-invalid @enderror"
+                        value="{{ old('break_end', $doctor->break_end ?? '') }}">
+                    @error('break_end')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>

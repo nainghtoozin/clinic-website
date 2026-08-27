@@ -164,3 +164,37 @@ if (!function_exists('initials')) {
         return mb_strtoupper(collect($parts)->map(fn (string $part) => mb_substr($part, 0, 1))->join(''));
     }
 }
+
+if (! function_exists('fmt_money')) {
+    function fmt_money(float|int|null $amount, ?string $currency = null): string
+    {
+        $currency = $currency ?? \App\Services\ClinicSettingsService::get('clinic_currency', 'USD');
+        $amount = (float) ($amount ?? 0);
+
+        $symbols = [
+            'USD' => '$', 'EUR' => '€', 'GBP' => '£', 'JPY' => '¥',
+            'INR' => '₹', 'AUD' => 'A$', 'CAD' => 'C$', 'CHF' => 'CHF ',
+            'CNY' => '¥', 'BRL' => 'R$', 'KRW' => '₩', 'TRY' => '₺',
+            'RUB' => '₽', 'MXN' => 'MX$', 'SAR' => 'SAR ', 'AED' => 'AED ',
+        ];
+
+        $symbol = $symbols[strtoupper($currency)] ?? $currency . ' ';
+
+        return $symbol . number_format($amount, 2);
+    }
+}
+
+if (! function_exists('clinic_header_data')) {
+    function clinic_header_data(): array
+    {
+        return [
+            'name'    => \App\Services\ClinicSettingsService::get('site.site_name', config('app.name', 'Clinic')),
+            'logo'    => \App\Services\ClinicSettingsService::get('site.logo'),
+            'address' => \App\Services\ClinicSettingsService::get('site.address'),
+            'phone'   => \App\Services\ClinicSettingsService::get('site.phone'),
+            'email'   => \App\Services\ClinicSettingsService::get('site.email'),
+            'footer'  => \App\Services\ClinicSettingsService::get('clinic_receipt_footer'),
+            'currency' => \App\Services\ClinicSettingsService::get('clinic_currency', 'USD'),
+        ];
+    }
+}

@@ -65,6 +65,44 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Upcoming Appointments --}}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Upcoming Appointments</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if ($upcomingAppointments->isEmpty())
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-x fs-3 text-muted d-block mb-2"></i>
+                            <p class="text-muted mb-0">No upcoming appointments</p>
+                        </div>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Patient</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($upcomingAppointments as $apt)
+                                        <tr>
+                                            <td class="small">{{ fmt_date($apt->date) }}</td>
+                                            <td class="small">{{ fmt_time($apt->time) }}</td>
+                                            <td class="small">{{ $apt->patient->name ?? $apt->name ?? '-' }}</td>
+                                            <td><span class="badge {{ $apt->status->badgeClass() }}">{{ $apt->status->label() }}</span></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-4">
@@ -115,21 +153,75 @@
                             @forelse ($doctor->dayLabels() as $day)
                                 <span class="badge bg-primary-subtle text-primary">{{ $day }}</span>
                             @empty
-                                <span class="text-muted">-</span>
+                                <span class="text-muted">No working days configured</span>
                             @endforelse
                         </div>
                     </div>
-                    <div class="mb-0">
-                        <label class="form-label text-muted small mb-0">Hours</label>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-0">Working Hours</label>
                         @if ($doctor->start_time && $doctor->end_time)
                             <div class="fw-semibold">
                                 <i class="bi bi-clock me-1 text-muted"></i>
                                 {{ fmt_time($doctor->start_time) }} &ndash; {{ fmt_time($doctor->end_time) }}
                             </div>
                         @else
-                            <div class="text-muted">-</div>
+                            <div class="text-muted">Not configured</div>
                         @endif
                     </div>
+                    <div class="mb-0">
+                        <label class="form-label text-muted small mb-0">Break</label>
+                        @if ($doctor->break_start && $doctor->break_end)
+                            <div class="fw-semibold">
+                                <i class="bi bi-cup me-1 text-muted"></i>
+                                {{ fmt_time($doctor->break_start) }} &ndash; {{ fmt_time($doctor->break_end) }}
+                            </div>
+                        @else
+                            <div class="text-muted">No break configured</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Upcoming Unavailable Dates --}}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h6 class="mb-0"><i class="bi bi-calendar-x me-2"></i>Unavailable Dates</h6>
+                    @can('doctor.edit')
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#unavailableDateModal">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    @endcan
+                </div>
+                <div class="card-body">
+                    @if ($unavailableDates->isEmpty())
+                        <div class="text-center py-3">
+                            <i class="bi bi-calendar-check fs-3 text-success d-block mb-2"></i>
+                            <p class="text-muted small mb-0">No upcoming unavailable dates</p>
+                        </div>
+                    @else
+                        @foreach ($unavailableDates as $unavailable)
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded bg-light">
+                                <div>
+                                    <div class="fw-semibold small">{{ fmt_date($unavailable->date) }}</div>
+                                    <div class="text-muted small">
+                                        <span class="badge {{ $unavailable->getTypeBadgeClass() }}">{{ $unavailable->getTypeLabel() }}</span>
+                                        @if ($unavailable->reason)
+                                            &middot; {{ $unavailable->reason }}
+                                        @endif
+                                    </div>
+                                </div>
+                                @can('doctor.edit')
+                                    <form method="POST" action="{{ route('doctors.unavailable-dates.destroy', [$doctor, $unavailable]) }}" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove this unavailable date?')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                @endcan
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
             </div>
 
@@ -140,4 +232,51 @@
             @endcan
         </div>
     </div>
+
+    {{-- Add Unavailable Date Modal --}}
+    @can('doctor.edit')
+        <div class="modal fade" id="unavailableDateModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('doctors.unavailable-dates.store', $doctor) }}">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Add Unavailable Date</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" name="date" class="form-control" min="{{ now()->toDateString() }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Type <span class="text-danger">*</span></label>
+                                <select name="type" class="form-select" required>
+                                    <option value="leave">Leave</option>
+                                    <option value="holiday">Holiday</option>
+                                    <option value="training">Training</option>
+                                    <option value="emergency">Emergency</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Reason</label>
+                                <input type="text" name="reason" class="form-control" placeholder="e.g., Annual leave, Conference">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea name="notes" class="form-control" rows="2" placeholder="Additional details..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Add Date
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endcan
 </x-auth-layout>

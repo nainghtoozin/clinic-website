@@ -19,11 +19,16 @@
             @endcan
         @endif
         @can('payment.view')
-            @if ($invoice->payments->isNotEmpty())
-                <a href="{{ route('payments.receipt', $invoice->payments->latest()->first()) }}" class="btn btn-outline-info btn-sm d-inline-flex align-items-center">
+            @if ($latestPayment)
+                <a href="{{ route('payments.receipt', $latestPayment) }}" class="btn btn-outline-info btn-sm d-inline-flex align-items-center">
                     <i class="bi bi-receipt me-1"></i> Receipt
                 </a>
             @endif
+        @endcan
+        @can('invoice.view')
+            <a href="{{ route('print.invoice', $invoice) }}" target="_blank" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-printer me-1"></i> Print
+            </a>
         @endcan
         @if ($invoice->isDraft() || $invoice->isIssued() || $invoice->isPartiallyPaid())
             @can('invoice.cancel')
@@ -35,6 +40,14 @@
                 </form>
             @endcan
         @endif
+        @can('invoice.delete')
+            @if ($invoice->canBeDeleted())
+                <button type="button" class="btn btn-danger btn-sm d-inline-flex align-items-center"
+                    data-bs-toggle="modal" data-bs-target="#deleteInvoiceShowModal">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
+            @endif
+        @endcan
         <a href="{{ route('invoices.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
             <i class="bi bi-arrow-left me-1"></i> Back
         </a>
@@ -162,4 +175,63 @@
             @endif
         </div>
     </div>
+
+    {{-- Delete Confirmation Modal --}}
+    @can('invoice.delete')
+        @if ($invoice->canBeDeleted())
+        <div class="modal fade" id="deleteInvoiceShowModal" tabindex="-1" aria-labelledby="deleteInvoiceShowModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('invoices.destroy', $invoice) }}">
+                        @csrf
+                        @method('DELETE')
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title" id="deleteInvoiceShowModalLabel">
+                                <i class="bi bi-exclamation-triangle text-danger me-2"></i>Delete Invoice
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                                <i class="bi bi-info-circle mt-1"></i>
+                                <div>This action will soft-delete the invoice and reverse any associated inventory effects. This cannot be undone.</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small">Invoice #</label>
+                                        <div class="fw-semibold">{{ $invoice->invoice_number }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small">Patient</label>
+                                        <div class="fw-semibold">{{ $invoice->patient?->name ?? '-' }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small">Date</label>
+                                        <div>{{ fmt_date($invoice->created_at) }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-muted small">Total</label>
+                                        <div class="fw-semibold">${{ number_format($invoice->total, 2) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Deletion Reason <span class="text-danger">*</span></label>
+                                <textarea name="reason" class="form-control" rows="3" required
+                                    placeholder="Enter the reason for deleting this invoice..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i> Confirm Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+    @endcan
 </x-auth-layout>

@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ ($title ?? '') ?: setting('site.site_name') ?: 'Clinic' }}</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script>
@@ -62,7 +58,7 @@
         body.auth-page {
             min-height: 100vh;
             margin: 0;
-            font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--auth-bg);
             color: var(--auth-text);
             display: flex;
@@ -174,7 +170,7 @@
             flex: 0 0 auto;
         }
         .auth-logo-name {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-weight: 600;
             font-size: 1.2rem;
             line-height: 1.2;
@@ -188,7 +184,7 @@
         }
 
         .auth-brand-title {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-size: 1.75rem;
             font-weight: 600;
             line-height: 1.25;
@@ -253,7 +249,7 @@
             gap: .55rem;
             margin-bottom: 1.4rem;
             color: var(--auth-brand-title);
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-weight: 600;
         }
         .auth-mobile-logo .bi-hospital {
@@ -269,7 +265,7 @@
         }
 
         .auth-card-title {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-weight: 600;
             font-size: 1.4rem;
             color: var(--auth-text);

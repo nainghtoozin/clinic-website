@@ -29,6 +29,21 @@ class UserSettingsService
             'week_starts_on' => 'sunday',
             'show_weekends' => true,
         ],
+        'notifications' => [
+            'appointment_notifications' => true,
+            'queue_notifications' => true,
+            'consultation_notifications' => true,
+            'prescription_notifications' => true,
+            'investigation_notifications' => true,
+            'inventory_notifications' => true,
+            'expiry_notifications' => true,
+            'invoice_notifications' => true,
+            'payment_notifications' => true,
+            'expense_notifications' => true,
+            'communication_notifications' => true,
+            'backup_notifications' => true,
+            'system_notifications' => true,
+        ],
     ];
 
     public function categories(): array

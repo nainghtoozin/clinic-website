@@ -1,8 +1,13 @@
 <x-auth-layout>
     <x-page-header title="Patient Profile" subtitle="{{ $patient->patient_number }}"
         :breadcrumbs="[['label' => 'Patients', 'url' => route('patients.index')], ['label' => $patient->name]]">
+        @can('patient.view')
+            <a href="{{ route('patients.medical-record', $patient) }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-clipboard2-pulse me-1"></i> Medical Record
+            </a>
+        @endcan
         @can('appointment.create')
-            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center">
                 <i class="bi bi-calendar-plus me-1"></i> Book Appointment
             </a>
         @endcan

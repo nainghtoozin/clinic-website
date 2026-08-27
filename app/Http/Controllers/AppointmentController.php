@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Services\AppointmentAvailabilityService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -61,8 +62,9 @@ class AppointmentController extends Controller
 
         $doctors = \App\Models\Doctor::orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
+        $pendingCount = Appointment::where('status', AppointmentStatus::Pending)->count();
 
-        return view('appointments.index', compact('appointments', 'doctors', 'departments'));
+        return view('appointments.index', compact('appointments', 'doctors', 'departments', 'pendingCount'));
     }
 
     public function create(Request $request)
@@ -91,17 +93,22 @@ class AppointmentController extends Controller
 
         $doctor = Doctor::findOrFail($validated['doctor_id']);
         $date = \Carbon\Carbon::parse($validated['date']);
-        $duration = $validated['duration'] ?? \App\Services\AppointmentAvailabilityService::DEFAULT_DURATION_MINUTES;
+        $duration = $validated['duration'] ?? $this->availability->defaultDuration();
 
         $workingDay = $this->availability->isWorkingDay($doctor, $date);
+        $isUnavailable = $this->availability->isUnavailableDate($doctor, $date);
         $hours = $this->availability->workingHours($doctor);
-        $slots = $workingDay && $hours
+        $slots = $workingDay && $hours && !$isUnavailable
             ? $this->availability->availableSlots($doctor, $date, $duration)
             : [];
 
         $message = 'No appointment times are available for this doctor on this date.';
         if (! $workingDay) {
             $message = 'This doctor does not work on this date. Please choose another day.';
+        } elseif ($isUnavailable) {
+            $unavailable = $this->availability->getUnavailableDate($doctor, $date);
+            $reason = $unavailable ? ': ' . $unavailable->getTypeLabel() : '';
+            $message = 'This doctor is unavailable on this date' . $reason . '. Please choose another day.';
         } elseif ($hours === null) {
             $message = 'This doctor does not have a working schedule set up.';
         }
@@ -143,6 +150,13 @@ class AppointmentController extends Controller
             return back()->withErrors(['date' => 'Doctor is not available on ' . $appointmentDate->isoFormat('dddd') . '. Available days: ' . implode(', ', array_map(fn($d) => \App\Enums\DayOfWeek::from($d)->label(), $doctor->available_days ?? []))])->withInput();
         }
 
+        // 3b. Check if the date is marked as unavailable.
+        if ($this->availability->isUnavailableDate($doctor, $appointmentDate)) {
+            $unavailable = $this->availability->getUnavailableDate($doctor, $appointmentDate);
+            $reason = $unavailable ? ' (' . $unavailable->getTypeLabel() . ')' : '';
+            return back()->withErrors(['date' => 'Doctor is unavailable on this date' . $reason . '. Please choose another date.'])->withInput();
+        }
+
         // 4. The doctor must have a valid schedule (start < end) and the booking
         // must start and finish inside the working hours. The shared availability
         // service normalizes the schedule so invalid data never leaks a
@@ -169,7 +183,18 @@ class AppointmentController extends Controller
         $validated['status'] = AppointmentStatus::Scheduled;
         $validated['source'] = 'admin';
 
-        Appointment::create($validated);
+        $appointment = Appointment::create($validated);
+
+        NotificationService::notify(
+            $doctor->user_id,
+            'appointment',
+            'New Appointment',
+            "Appointment scheduled for {$patient->name} on {$validated['date']} at {$validated['time']}",
+            $appointment,
+            'appointment',
+            'created',
+            route('appointments.show', $appointment)
+        );
 
         return redirect()->route('appointments.index')
             ->with('success', 'Appointment scheduled successfully.');
@@ -255,6 +280,17 @@ class AppointmentController extends Controller
 
         $appointment->update($validated);
 
+        NotificationService::notify(
+            $doctor->user_id,
+            'appointment',
+            'Appointment Rescheduled',
+            "Appointment for {$appointment->name} rescheduled to {$validated['date']} at {$validated['time']}",
+            $appointment,
+            'appointment',
+            'updated',
+            route('appointments.show', $appointment)
+        );
+
         return redirect()->route('appointments.show', $appointment)
             ->with('success', 'Appointment rescheduled successfully.');
     }
@@ -278,6 +314,17 @@ class AppointmentController extends Controller
         }
 
         $this->applyStatusChange($appointment, AppointmentStatus::Confirmed, 'Confirmed by staff.');
+
+        NotificationService::notify(
+            $appointment->doctor->user_id ?? auth()->id(),
+            'appointment',
+            'Appointment Confirmed',
+            "Appointment {$appointment->appointment_number} for {$appointment->name} has been confirmed.",
+            $appointment,
+            'appointment',
+            'confirmed',
+            route('appointments.show', $appointment)
+        );
 
         return back()->with('success', 'Appointment confirmed.');
     }
@@ -303,6 +350,17 @@ class AppointmentController extends Controller
 
         $this->applyStatusChange($appointment, AppointmentStatus::Cancelled, $note);
 
+        NotificationService::notify(
+            $appointment->doctor->user_id ?? auth()->id(),
+            'appointment',
+            'Appointment Cancelled',
+            "Appointment {$appointment->appointment_number} for {$appointment->name} has been cancelled.",
+            $appointment,
+            'appointment',
+            'cancelled',
+            route('appointments.show', $appointment)
+        );
+
         return back()->with('success', 'Appointment cancelled.');
     }
 
@@ -315,6 +373,17 @@ class AppointmentController extends Controller
         }
 
         $this->applyStatusChange($appointment, AppointmentStatus::Completed, 'Marked as completed.');
+
+        NotificationService::notify(
+            $appointment->doctor->user_id ?? auth()->id(),
+            'appointment',
+            'Appointment Completed',
+            "Appointment {$appointment->appointment_number} for {$appointment->name} has been completed.",
+            $appointment,
+            'appointment',
+            'completed',
+            route('appointments.show', $appointment)
+        );
 
         return back()->with('success', 'Appointment marked as completed.');
     }

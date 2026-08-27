@@ -51,6 +51,24 @@ class UserSettingController extends Controller
             'show_weekends' => $validated['preferences']['show_weekends'],
         ]);
 
+        if (isset($validated['notifications'])) {
+            $this->settings->save($user, 'notifications', [
+                'appointment_notifications' => $validated['notifications']['appointment_notifications'] ?? true,
+                'queue_notifications' => $validated['notifications']['queue_notifications'] ?? true,
+                'consultation_notifications' => $validated['notifications']['consultation_notifications'] ?? true,
+                'prescription_notifications' => $validated['notifications']['prescription_notifications'] ?? true,
+                'investigation_notifications' => $validated['notifications']['investigation_notifications'] ?? true,
+                'inventory_notifications' => $validated['notifications']['inventory_notifications'] ?? true,
+                'expiry_notifications' => $validated['notifications']['expiry_notifications'] ?? true,
+                'invoice_notifications' => $validated['notifications']['invoice_notifications'] ?? true,
+                'payment_notifications' => $validated['notifications']['payment_notifications'] ?? true,
+                'expense_notifications' => $validated['notifications']['expense_notifications'] ?? true,
+                'communication_notifications' => $validated['notifications']['communication_notifications'] ?? true,
+                'backup_notifications' => $validated['notifications']['backup_notifications'] ?? true,
+                'system_notifications' => $validated['notifications']['system_notifications'] ?? true,
+            ]);
+        }
+
         return back()->with('success', __('app.settings.saved'));
     }
 
@@ -69,6 +87,20 @@ class UserSettingController extends Controller
             'preferences.calendar_view' => ['required', Rule::in(['month', 'week', 'list'])],
             'preferences.week_starts_on' => ['required', Rule::in(['sunday', 'monday', 'saturday'])],
             'preferences.show_weekends' => ['required', 'boolean'],
+
+            'notifications.appointment_notifications' => ['sometimes', 'boolean'],
+            'notifications.queue_notifications' => ['sometimes', 'boolean'],
+            'notifications.consultation_notifications' => ['sometimes', 'boolean'],
+            'notifications.prescription_notifications' => ['sometimes', 'boolean'],
+            'notifications.investigation_notifications' => ['sometimes', 'boolean'],
+            'notifications.inventory_notifications' => ['sometimes', 'boolean'],
+            'notifications.expiry_notifications' => ['sometimes', 'boolean'],
+            'notifications.invoice_notifications' => ['sometimes', 'boolean'],
+            'notifications.payment_notifications' => ['sometimes', 'boolean'],
+            'notifications.expense_notifications' => ['sometimes', 'boolean'],
+            'notifications.communication_notifications' => ['sometimes', 'boolean'],
+            'notifications.backup_notifications' => ['sometimes', 'boolean'],
+            'notifications.system_notifications' => ['sometimes', 'boolean'],
         ];
     }
 

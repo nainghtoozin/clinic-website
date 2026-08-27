@@ -1248,7 +1248,7 @@ test('movement detail modal shows medicine, batch, before/after, reason, note, u
     $this->assertStringContainsString('Amoxicillin', $html);
     $this->assertStringContainsString('Damaged during handling', $html);
     $this->assertStringContainsString('Supplier note: keep refrigerated', $html);
-    $this->assertStringContainsString($this->user->name, $html);
+    $this->assertStringContainsString(e($this->user->name), $html);
     // Before/after quantities are embedded in the (HTML-escaped) modal JSON payload.
     $this->assertStringContainsString('&quot;before&quot;:50', $html);
     $this->assertStringContainsString('&quot;after&quot;:40', $html);

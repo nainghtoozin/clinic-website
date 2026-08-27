@@ -1,7 +1,7 @@
 <x-auth-layout>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Reports</h4>
-    </div>
+    <x-page-header title="Reports" subtitle="Business intelligence and analytics"
+        :breadcrumbs="[['label' => 'Reports']]">
+    </x-page-header>
 
     <div class="row g-4">
         @can('report.patient')
@@ -51,9 +51,51 @@
             <a href="{{ route('reports.financial') }}" class="text-decoration-none">
                 <div class="card shadow-sm h-100 border-0">
                     <div class="card-body text-center py-4">
-                        <i class="bi bi-cash-stack fs-1 text-warning mb-3"></i>
+                        <i class="bi bi-cash-stack fs-1 text-success mb-3"></i>
                         <h5 class="card-title">Financial Report</h5>
-                        <p class="text-muted small">Invoiced, paid, outstanding, payment methods</p>
+                        <p class="text-muted small">Revenue, expenses, net income, outstanding, by source</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        @endcan
+
+        @can('report.financial')
+        <div class="col-md-4">
+            <a href="{{ route('reports.expense') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-receipt fs-1 text-danger mb-3"></i>
+                        <h5 class="card-title">Expense Report</h5>
+                        <p class="text-muted small">Expenses by category, date range, payment method</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        @endcan
+
+        @can('report.financial')
+        <div class="col-md-4">
+            <a href="{{ route('reports.profit') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-graph-up fs-1 text-primary mb-3"></i>
+                        <h5 class="card-title">Profit Report</h5>
+                        <p class="text-muted small">Revenue vs Expenses, net income, daily breakdown</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        @endcan
+
+        @can('report.financial')
+        <div class="col-md-4">
+            <a href="{{ route('reports.payment-method') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-credit-card fs-1 text-warning mb-3"></i>
+                        <h5 class="card-title">Payment Methods</h5>
+                        <p class="text-muted small">Payments by method, totals, percentages</p>
                     </div>
                 </div>
             </a>

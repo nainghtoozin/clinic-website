@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('app.admin_panel') }} {{ config('app.name', __('app.app_name')) }}</title>
 
     <script>
@@ -23,12 +24,6 @@
         })();
     </script>
 
-    <!-- Fonts (matches the public template) -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -80,6 +75,21 @@
                 <i class="bi bi-file-medical"></i> {{ __('app.nav.prescriptions') }}
             </a>
         @endcan
+        @can('lab_test.view')
+            <a href="{{ route('lab-tests.index') }}" class="{{ request()->routeIs('lab-tests.*') ? 'active' : '' }}">
+                <i class="bi bi-eyedropper"></i> Lab Tests
+            </a>
+        @endcan
+        @can('investigation.view')
+            <a href="{{ route('investigations.index') }}" class="{{ request()->routeIs('investigations.*') ? 'active' : '' }}">
+                <i class="bi bi-clipboard2-data"></i> Investigations
+            </a>
+        @endcan
+        @can('communication.view')
+            <a href="{{ route('communications.index') }}" class="{{ request()->routeIs('communications.*') ? 'active' : '' }}">
+                <i class="bi bi-chat-dots"></i> Communications
+            </a>
+        @endcan
 
         <div class="nav-section">{{ __('app.nav.section_inventory') }}</div>
         @can('medicine.view')
@@ -104,6 +114,11 @@
                 <i class="bi bi-cash-stack"></i> {{ __('app.nav.payments') }}
             </a>
         @endcan
+        @can('expense.view')
+            <a href="{{ route('expenses.index') }}" class="{{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                <i class="bi bi-receipt"></i> Expenses
+            </a>
+        @endcan
 
         <div class="nav-section">{{ __('app.nav.section_management') }}</div>
         @can('doctor.view')
@@ -126,12 +141,27 @@
                 <i class="bi bi-graph-up"></i> {{ __('app.nav.reports') }}
             </a>
         @endcan
+        @can('dashboard.view')
+            <a href="{{ route('analytics.index') }}" class="{{ request()->routeIs('analytics.*') ? 'active' : '' }}">
+                <i class="bi bi-bar-chart-line"></i> Analytics
+            </a>
+        @endcan
         <a href="{{ route('user.settings') }}" class="{{ request()->routeIs('user.settings*') ? 'active' : '' }}">
             <i class="bi bi-gear"></i> {{ __('app.nav.settings') }}
         </a>
         @can('settings.view')
-            <a href="{{ route('settings.clinic') }}" class="{{ request()->routeIs('settings.clinic*', 'settings.website*') ? 'active' : '' }}">
+            <a href="{{ route('settings.clinic') }}" class="{{ request()->routeIs('settings.clinic*', 'settings.website*', 'settings.appointment*', 'settings.queue*', 'settings.billing*', 'settings.inventory*', 'settings.prescription*') ? 'active' : '' }}">
                 <i class="bi bi-buildings"></i> {{ __('app.nav.clinic_settings') }}
+            </a>
+        @endcan
+        @can('backup.view')
+            <a href="{{ route('backups.index') }}" class="{{ request()->routeIs('backups.*') ? 'active' : '' }}">
+                <i class="bi bi-database"></i> Backup & Restore
+            </a>
+        @endcan
+        @can('audit.view')
+            <a href="{{ route('audit-logs.index') }}" class="{{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Audit Logs
             </a>
         @endcan
 
@@ -162,8 +192,59 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                @auth
                 <div class="dropdown">
-                    <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2 border-0 shadow-none py-1 px-2" type="button"
+                    <button class="btn btn-sm d-flex align-items-center gap-1 border-0 shadow-none py-1 px-2 position-relative notification-trigger"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown">
+                        <i class="bi bi-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-unread-badge"
+                              style="display: {{ \App\Services\NotificationService::unreadCount(auth()->user()) > 0 ? 'inline' : 'none' }}">
+                            {{ \App\Services\NotificationService::unreadCount(auth()->user()) }}
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow border-0 notification-dropdown" style="width: 360px; max-height: 420px; overflow-y: auto;">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                            <h6 class="mb-0 fw-semibold">Notifications</h6>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 fw-medium" onclick="markAllReadDropdown()">Mark all read</button>
+                        </div>
+                        <div id="notification-dropdown-list">
+                            @if($recentNotifications->isEmpty())
+                                <div class="text-center py-4 text-muted">
+                                    <i class="bi bi-bell-slash d-block mb-2" style="font-size: 1.5rem;"></i>
+                                    <small>No notifications yet</small>
+                                </div>
+                            @else
+                                @foreach($recentNotifications as $notif)
+                                    <a href="{{ route('notifications.show', $notif) }}"
+                                       class="dropdown-item px-3 py-2 {{ $notif->is_read ? '' : 'notification-unread' }}"
+                                       data-notif-id="{{ $notif->id }}">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <span class="badge bg-{{ $notif->is_read ? 'secondary' : 'primary' }} rounded-circle p-1 mt-1 flex-shrink-0">
+                                                <i class="bi {{ $notif->icon }}" style="font-size: 0.7rem;"></i>
+                                            </span>
+                                            <div class="flex-grow-1 min-width-0">
+                                                <div class="d-flex justify-content-between align-items-baseline">
+                                                    <span class="fw-medium small text-truncate" style="max-width: 210px;">{{ $notif->title }}</span>
+                                                    <small class="text-muted text-nowrap ms-2 flex-shrink-0">{{ $notif->time_ago }}</small>
+                                                </div>
+                                                <small class="text-muted d-block text-truncate mt-0" style="max-width: 260px;">{{ $notif->message }}</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            @endif
+                        </div>
+                        <div class="border-top px-3 py-2 text-center">
+                            <a href="{{ route('notifications.index') }}" class="small text-decoration-none fw-medium">
+                                View All Notifications <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @endauth
+
+                <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2 border-0 shadow-none py-1 px-2 user-trigger" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         @if (Auth::user()->avatar)
                             <img src="{{ Storage::url(Auth::user()->avatar) }}" alt="" class="avatar avatar-sm">
@@ -181,23 +262,23 @@
                                 <div class="small text-muted text-truncate" style="max-width:220px;">{{ Auth::user()->email }}</div>
                             </div>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
+                        <li><hr class="dropdown-divider my-1"></li>
                         <li>
-                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="bi bi-person me-2"></i> {{ __('app.topbar.profile') }}
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('profile.edit') }}">
+                                <i class="bi bi-person"></i> {{ __('app.topbar.profile') }}
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ route('user.settings') }}">
-                                <i class="bi bi-gear me-2"></i> {{ __('app.nav.settings') }}
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('user.settings') }}">
+                                <i class="bi bi-gear"></i> {{ __('app.nav.settings') }}
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
+                        <li><hr class="dropdown-divider my-1"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="dropdown-item text-danger">
-                                    <i class="bi bi-box-arrow-right me-2"></i> {{ __('app.topbar.log_out') }}
+                                <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-arrow-right"></i> {{ __('app.topbar.log_out') }}
                                 </button>
                             </form>
                         </li>
@@ -243,6 +324,37 @@
     </div>
 
     @stack('scripts')
+
+    <script>
+        function getCsrfToken() {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            return meta ? meta.content : '';
+        }
+
+        function markAllReadDropdown() {
+            fetch('/notifications/read-all', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+            })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(function (data) {
+                document.querySelectorAll('.notification-unread-badge').forEach(function (badge) {
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                });
+                document.querySelectorAll('#notification-dropdown-list .notification-unread').forEach(function (item) {
+                    item.classList.remove('notification-unread');
+                });
+            })
+            .catch(function () {});
+        }
+    </script>
 </body>
 
 </html>

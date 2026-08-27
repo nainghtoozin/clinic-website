@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -43,7 +44,7 @@ class UserController extends Controller
         $request->validate([
             'name'     => 'required',
             'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
+            'password' => ['required', 'confirmed', Password::defaults()],
             'role'    => 'required|exists:roles,name'
         ]);
 
@@ -76,7 +77,7 @@ class UserController extends Controller
         $request->validate([
             'name'  => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:6',
+            'password' => ['nullable', Password::defaults()],
             'role' => 'required|exists:roles,name'
         ]);
 

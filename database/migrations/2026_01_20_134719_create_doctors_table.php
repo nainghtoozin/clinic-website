@@ -42,7 +42,7 @@ return new class extends Migration {
             $table->time('start_time')->default('00:00:00');
             $table->time('end_time')->default('00:00:00');
 
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('location_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->timestamps();

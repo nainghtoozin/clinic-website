@@ -62,6 +62,16 @@ class Patient extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function investigations()
+    {
+        return $this->hasMany(Investigation::class);
+    }
+
+    public function communications()
+    {
+        return $this->hasMany(Communication::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

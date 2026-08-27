@@ -8,8 +8,8 @@
    ========================================================= */
 
 :root {
-    --app-font: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --app-font-headings: 'Poppins', 'Roboto', system-ui, sans-serif;
+    --app-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --app-font-headings: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --sidebar-width: 260px;
     --sidebar-width-collapsed: 72px;
 
@@ -195,6 +195,11 @@ button:focus-visible,
     color: var(--sidebar-text);
     border-bottom: 1px solid var(--sidebar-border);
     text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.sidebar .sidebar-brand:hover {
+    background: var(--sidebar-hover-bg);
 }
 
 .sidebar .sidebar-brand .brand-mark {
@@ -202,12 +207,13 @@ button:focus-visible,
     height: 38px;
     flex: 0 0 38px;
     border-radius: 11px;
-    background: var(--sidebar-active-bg);
-    color: var(--clinic-primary);
+    background: linear-gradient(135deg, var(--clinic-primary), color-mix(in srgb, var(--clinic-primary) 75%, #000));
+    color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 1.15rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar .sidebar-brand .brand-name {
@@ -358,6 +364,50 @@ button:focus-visible,
     z-index: 1030;
     min-height: 62px;
     border-bottom: 1px solid #ecebf4;
+}
+
+.topbar .btn-light {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--app-body-color);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar .btn-light:hover,
+.topbar .btn-light:focus {
+    background-color: var(--clinic-soft-bg);
+    color: var(--clinic-primary);
+}
+
+[data-bs-theme="dark"] .topbar .btn-light {
+    color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .topbar .btn-light:hover,
+[data-bs-theme="dark"] .topbar .btn-light:focus {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--clinic-primary);
+}
+
+.topbar .notification-trigger {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.1rem;
+}
+
+.topbar .user-trigger {
+    border-radius: 10px;
+    padding: 0.3rem 0.6rem 0.3rem 0.3rem;
+}
+
+.topbar .user-trigger .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
 }
 
 .sidebar-toggle {
@@ -747,7 +797,8 @@ body.density-compact .table th {
 }
 
 [data-bs-theme="dark"] .card,
-[data-bs-theme="dark"] .bg-white {
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light {
     background-color: var(--sidebar-bg) !important;
     border-color: var(--sidebar-border);
 }
@@ -773,4 +824,328 @@ body.density-compact .table th {
 
 [data-bs-theme="dark"] .nav-pills .nav-link:hover {
     color: var(--clinic-primary);
+}
+
+/* ------------------------------------------------------------------
+   Analytics — section & data block helpers
+   ------------------------------------------------------------------ */
+.analytics-section {
+    border: 1px solid #ecebf4;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(24, 26, 48, 0.04), 0 6px 16px rgba(24, 26, 48, 0.05);
+}
+
+.analytics-section .section-header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid #f0eff7;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--app-heading-color);
+}
+
+.analytics-section .section-header i {
+    color: var(--clinic-primary);
+    font-size: 1rem;
+}
+
+.analytics-section .section-body {
+    padding: 1.15rem 1.25rem;
+}
+
+.analytics-data-card {
+    background: var(--clinic-soft-bg);
+    border: 1px solid #f0eff7;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+}
+
+.analytics-data-card .data-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--app-muted-color);
+    margin-bottom: 0.35rem;
+}
+
+.analytics-data-card .data-value {
+    font-family: var(--app-font-headings);
+    font-size: 1.55rem;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+}
+
+.analytics-progress-row {
+    margin-bottom: 0.6rem;
+}
+
+.analytics-progress-row:last-child {
+    margin-bottom: 0;
+}
+
+.analytics-progress-row .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.3rem;
+}
+
+.analytics-progress-row .progress-label .label-text {
+    font-size: 0.82rem;
+    color: var(--app-body-color);
+}
+
+.analytics-progress-row .progress-label .label-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--app-body-color);
+}
+
+.analytics-progress-row .progress-label .label-pct {
+    font-size: 0.75rem;
+    color: var(--app-muted-color);
+    margin-left: 0.25rem;
+}
+
+.analytics-progress-row .progress {
+    height: 6px;
+    border-radius: 999px;
+    background: #f0eff7;
+    overflow: hidden;
+}
+
+.analytics-progress-row .progress .progress-bar {
+    border-radius: 999px;
+}
+
+.analytics-sub-section {
+    padding: 1rem;
+    background: var(--clinic-soft-bg);
+    border: 1px solid #f0eff7;
+    border-radius: 10px;
+}
+
+.analytics-sub-section .sub-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--app-muted-color);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f0eff7;
+}
+
+.analytics-sub-section .table {
+    margin-bottom: 0;
+}
+
+.analytics-sub-section .table td,
+.analytics-sub-section .table th {
+    padding: 0.45rem 0.6rem;
+}
+
+.analytics-empty-state {
+    text-align: center;
+    padding: 1.5rem 0.75rem;
+    color: var(--app-muted-color);
+    font-size: 0.82rem;
+}
+
+/* Dark mode — analytics */
+[data-bs-theme="dark"] .analytics-section {
+    background-color: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .analytics-section .section-header {
+    border-bottom-color: var(--sidebar-border);
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .analytics-data-card {
+    background-color: var(--sidebar-hover-bg);
+    border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .analytics-data-card .data-label {
+    color: var(--sidebar-muted);
+}
+
+[data-bs-theme="dark"] .analytics-data-card .data-value {
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .analytics-sub-section {
+    background-color: var(--sidebar-hover-bg);
+    border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .analytics-sub-section .sub-title {
+    color: var(--sidebar-muted);
+    border-bottom-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .analytics-progress-row .progress {
+    background-color: #2a2e42;
+}
+
+[data-bs-theme="dark"] .analytics-progress-row .progress-label .label-text,
+[data-bs-theme="dark"] .analytics-progress-row .progress-label .label-value {
+    color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .analytics-empty-state {
+    color: var(--sidebar-muted);
+}
+
+.stock-movement-badge {
+    background-color: var(--clinic-soft-bg);
+    color: var(--app-body-color);
+    border: 1px solid #f0eff7;
+}
+
+[data-bs-theme="dark"] .stock-movement-badge {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--sidebar-text);
+    border-color: var(--sidebar-border);
+}
+
+/* ------------------------------------------------------------------
+   Pagination — dark mode & analytics overrides
+   ------------------------------------------------------------------ */
+[data-bs-theme="dark"] .pagination {
+    --bs-pagination-bg: var(--sidebar-bg);
+    --bs-pagination-border-color: var(--sidebar-border);
+    --bs-pagination-color: var(--sidebar-text);
+    --bs-pagination-hover-bg: var(--sidebar-hover-bg);
+    --bs-pagination-hover-border-color: var(--sidebar-border);
+    --bs-pagination-hover-color: var(--app-heading-color);
+    --bs-pagination-active-bg: var(--clinic-primary);
+    --bs-pagination-active-border-color: var(--clinic-primary);
+    --bs-pagination-active-color: #fff;
+    --bs-pagination-disabled-bg: var(--sidebar-bg);
+    --bs-pagination-disabled-border-color: var(--sidebar-border);
+    --bs-pagination-disabled-color: var(--sidebar-muted);
+}
+
+.analytics-section .pagination {
+    margin-bottom: 0;
+    font-size: 0.82rem;
+}
+
+.analytics-section .page-link {
+    padding: 0.3rem 0.6rem;
+}
+
+/* ------------------------------------------------------------------
+   Notification dropdown & center — dark mode
+   ------------------------------------------------------------------ */
+[data-bs-theme="dark"] .dropdown-menu {
+    background-color: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+    color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .dropdown-menu .dropdown-item {
+    color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .dropdown-menu .dropdown-item:hover,
+[data-bs-theme="dark"] .dropdown-menu .dropdown-item:focus {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .notification-dropdown .dropdown-item.bg-light,
+[data-bs-theme="dark"] .notification-dropdown .dropdown-item.notification-unread {
+    background-color: var(--sidebar-hover-bg) !important;
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .notification-dropdown .dropdown-item .text-muted {
+    color: var(--sidebar-muted) !important;
+}
+
+[data-bs-theme="dark"] .notification-dropdown .dropdown-item .fw-medium {
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .notification-dropdown .border-bottom,
+[data-bs-theme="dark"] .notification-dropdown .border-top {
+    border-color: var(--sidebar-border) !important;
+}
+
+[data-bs-theme="dark"] .notification-dropdown .btn-link {
+    color: var(--clinic-primary);
+}
+
+[data-bs-theme="dark"] .notification-unread-badge {
+    background-color: var(--clinic-primary) !important;
+    color: #1c1f2e !important;
+}
+
+/* Notification center page — dark mode */
+[data-bs-theme="dark"] .list-group-item {
+    background-color: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+    color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .list-group-item.bg-light,
+[data-bs-theme="dark"] .list-group-item.notification-unread {
+    background-color: var(--sidebar-hover-bg) !important;
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .list-group-item .text-muted {
+    color: var(--sidebar-muted) !important;
+}
+
+[data-bs-theme="dark"] .list-group-item h6 {
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .list-group-item .badge.bg-light {
+    background-color: var(--sidebar-hover-bg) !important;
+    color: var(--sidebar-text) !important;
+    border-color: var(--sidebar-border);
+}
+
+/* Notification show page — dark mode */
+[data-bs-theme="dark"] .notification-metadata-card {
+    background-color: var(--sidebar-hover-bg) !important;
+    border-color: var(--sidebar-border) !important;
+    color: var(--sidebar-text);
+}
+
+/* Notification dropdown — header & links dark mode */
+[data-bs-theme="dark"] .notification-dropdown h6 {
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .notification-dropdown .dropdown-item .badge {
+    border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .notification-dropdown a.dropdown-item {
+    border-bottom-color: var(--sidebar-border);
+}
+
+/* User dropdown — dark mode */
+[data-bs-theme="dark"] .dropdown-menu .fw-semibold {
+    color: var(--app-heading-color);
+}
+
+[data-bs-theme="dark"] .dropdown-menu .small.text-muted {
+    color: var(--sidebar-muted) !important;
+}
+
+[data-bs-theme="dark"] .dropdown-menu .text-danger {
+    color: #f87171 !important;
 }

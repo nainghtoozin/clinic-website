@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use App\Services\AuditService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -86,10 +88,10 @@ class PaymentController extends Controller
             return back()->with('error', "Payment amount (\$" . number_format($paymentAmount, 2) . ") exceeds remaining balance (\$" . number_format($currentBalance, 2) . ").")->withInput();
         }
 
-        DB::transaction(function () use ($validated) {
+        $payment = DB::transaction(function () use ($validated) {
             $invoice = Invoice::lockForUpdate()->findOrFail($validated['invoice_id']);
 
-            Payment::create([
+            $payment = Payment::create([
                 'invoice_id' => $validated['invoice_id'],
                 'amount' => $validated['amount'],
                 'payment_method' => $validated['payment_method'],
@@ -105,7 +107,21 @@ class PaymentController extends Controller
             ]);
 
             $invoice->recalculateStatus();
+
+            return $payment;
         });
+
+        AuditService::logCreated($payment, 'Payment');
+
+        NotificationService::notifyAdmins(
+            'payment',
+            'Payment Received',
+            "Payment of \${$validated['amount']} received for invoice {$invoice->invoice_number}.",
+            $payment,
+            'payment',
+            'created',
+            route('invoices.show', $invoice)
+        );
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Payment recorded successfully.');
@@ -129,6 +145,8 @@ class PaymentController extends Controller
         if ($payment->invoice->isPaid()) {
             return back()->with('error', 'Cannot delete a payment from a fully paid invoice.');
         }
+
+        AuditService::logDeleted($payment, 'Payment');
 
         DB::transaction(function () use ($payment) {
             $invoice = $payment->invoice;

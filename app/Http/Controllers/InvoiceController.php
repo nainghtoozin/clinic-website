@@ -6,11 +6,15 @@ use App\Models\Consultation;
 use App\Models\Doctor;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\InventoryBatch;
 use App\Models\Medicine;
 use App\Models\Patient;
 use App\Models\Prescription;
 use App\Models\Service;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
+use App\Services\AuditService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -163,6 +167,19 @@ class InvoiceController extends Controller
             return $invoice;
         });
 
+        AuditService::logCreated($invoice, 'Invoice');
+
+        NotificationService::notify(
+            $invoice->doctor->user_id ?? auth()->id(),
+            'invoice',
+            'Invoice Created',
+            "Invoice {$invoice->invoice_number} has been created for {$invoice->patient->name}.",
+            $invoice,
+            'invoice',
+            'created',
+            route('invoices.show', $invoice)
+        );
+
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice created successfully.');
     }
@@ -173,7 +190,9 @@ class InvoiceController extends Controller
 
         $invoice->load(['patient', 'doctor', 'appointment', 'consultation', 'items', 'payments.recordedBy']);
 
-        return view('invoices.show', compact('invoice'));
+        $latestPayment = $invoice->payments()->first();
+
+        return view('invoices.show', compact('invoice', 'latestPayment'));
     }
 
     public function edit(Invoice $invoice)
@@ -216,6 +235,8 @@ class InvoiceController extends Controller
         $validated['discount'] = $validated['discount'] ?? 0;
         $validated['tax'] = $validated['tax'] ?? 0;
 
+        $old = $invoice->toArray();
+
         DB::transaction(function () use ($invoice, $validated) {
             $invoice->update([
                 'discount' => $validated['discount'],
@@ -251,6 +272,8 @@ class InvoiceController extends Controller
             $invoice->recalculateStatus();
         });
 
+        AuditService::logUpdated($invoice, 'Invoice', $old, $validated);
+
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice updated successfully.');
     }
@@ -263,10 +286,23 @@ class InvoiceController extends Controller
             return back()->with('error', 'Only draft invoices can be issued.');
         }
 
+        $oldStatus = $invoice->status;
         $invoice->update([
             'status' => 'issued',
             'issued_at' => now(),
         ]);
+
+        AuditService::logStatusChange($invoice, 'Invoice', $oldStatus, 'issued');
+
+        NotificationService::notifyAdmins(
+            'invoice',
+            'Invoice Issued',
+            "Invoice {$invoice->invoice_number} has been issued and is ready for payment.",
+            $invoice,
+            'invoice',
+            'issued',
+            route('invoices.show', $invoice)
+        );
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice issued successfully.');
@@ -280,21 +316,97 @@ class InvoiceController extends Controller
             return back()->with('error', 'Cannot cancel a fully paid invoice.');
         }
 
+        $oldStatus = $invoice->status;
         $invoice->update(['status' => 'cancelled']);
+
+        AuditService::logStatusChange($invoice, 'Invoice', $oldStatus, 'cancelled');
+
+        NotificationService::notifyAdmins(
+            'invoice',
+            'Invoice Cancelled',
+            "Invoice {$invoice->invoice_number} has been cancelled.",
+            $invoice,
+            'invoice',
+            'cancelled',
+            route('invoices.show', $invoice)
+        );
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice cancelled successfully.');
     }
 
-    public function destroy(Invoice $invoice)
+    public function destroy(Invoice $invoice, Request $request)
     {
-        Gate::authorize('invoice.cancel');
+        Gate::authorize('invoice.delete');
 
-        if ($invoice->payments()->count() > 0) {
-            return back()->with('error', 'Cannot delete an invoice with payment history.');
+        if (!$invoice->isCancelled()) {
+            return back()->with('error', 'Only cancelled invoices can be deleted.');
         }
 
-        $invoice->delete();
+        if ($invoice->payments()->exists()) {
+            return back()->with('error', 'This invoice has payment records. Payments must be reversed before deletion.');
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $oldAttributes = $invoice->getAttributes();
+        $medicineItems = $invoice->items()->where('type', 'medicine')->get();
+
+        DB::transaction(function () use ($invoice, $medicineItems) {
+            // Reverse inventory for medicine items
+            foreach ($medicineItems as $item) {
+                $medicine = Medicine::where('name', 'like', $item->description . '%')->first();
+                if (!$medicine) continue;
+
+                $movements = StockMovement::where('reference_type', Invoice::class)
+                    ->where('reference_id', $invoice->id)
+                    ->where('medicine_id', $medicine->id)
+                    ->get();
+
+                foreach ($movements as $movement) {
+                    if ($movement->inventory_batch_id) {
+                        $batch = InventoryBatch::find($movement->inventory_batch_id);
+                        if ($batch && $batch->quantity >= abs($movement->quantity)) {
+                            $batch->stockIn(
+                                abs($movement->quantity),
+                                "Reversal for deleted invoice {$invoice->invoice_number}",
+                                auth()->id(),
+                                $invoice
+                            );
+                        }
+                    } else {
+                        $medicine->stockIn(
+                            abs($movement->quantity),
+                            "Reversal for deleted invoice {$invoice->invoice_number}",
+                            auth()->id(),
+                            $invoice
+                        );
+                    }
+                }
+            }
+
+            $invoice->items()->delete();
+            $invoice->delete();
+        });
+
+        AuditService::log(
+            'deleted',
+            'Invoice',
+            $invoice,
+            "Invoice {$invoice->invoice_number} soft-deleted. Reason: {$validated['reason']}",
+            $oldAttributes,
+            null,
+            [
+                'reason' => $validated['reason'],
+                'patient_id' => $invoice->patient_id,
+                'patient_name' => $invoice->patient?->name,
+                'total' => $invoice->total,
+                'status' => $oldAttributes['status'] ?? 'cancelled',
+                'medicine_items_reversed' => $medicineItems->count(),
+            ]
+        );
 
         return redirect()->route('invoices.index')
             ->with('success', 'Invoice deleted successfully.');

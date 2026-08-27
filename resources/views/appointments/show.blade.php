@@ -8,6 +8,11 @@
                 </a>
             @endcan
         @endif
+        @can('appointment.view')
+            <a href="{{ route('print.appointment', $appointment) }}" target="_blank" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+                <i class="bi bi-printer me-1"></i> Print
+            </a>
+        @endcan
         <a href="{{ route('appointments.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
             <i class="bi bi-arrow-left me-1"></i> Back to List
         </a>
@@ -269,6 +274,46 @@
         </div>
         <div x-show="open" x-cloak class="modal-backdrop fade show"></div>
     </div>
+
+    {{-- Communications --}}
+    @can('communication.view')
+        @php
+            $appointmentComms = \App\Models\Communication::with(['user'])
+                ->where('appointment_id', $appointment->id)
+                ->latest('contacted_at')
+                ->get();
+        @endphp
+        @if ($appointmentComms->isNotEmpty())
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Communications</h6>
+                    <span class="badge bg-secondary">{{ $appointmentComms->count() }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach ($appointmentComms as $comm)
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <div>
+                                        <span class="badge {{ $comm->getContactMethodBadgeClass() }} me-1">{{ $comm->contact_method_label }}</span>
+                                        <span class="badge {{ $comm->getPurposeBadgeClass() }} me-1">{{ $comm->purpose_label }}</span>
+                                        <span class="badge {{ $comm->getOutcomeBadgeClass() }}">{{ $comm->outcome_label }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ $comm->contacted_at->format('d M, H:i') }}</small>
+                                </div>
+                                @if ($comm->note)
+                                    <div class="small text-muted">{{ $comm->note }}</div>
+                                @endif
+                                <div class="mt-1">
+                                    <small class="text-muted">By {{ $comm->user->name ?? '-' }}</small>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endcan
 
     {{-- Status History --}}
     <div class="card shadow-sm border-0 mb-4">

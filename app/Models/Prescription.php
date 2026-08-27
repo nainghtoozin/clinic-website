@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ClinicSettingsService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -36,19 +37,21 @@ class Prescription extends Model
 
     public static function generatePrescriptionNumber(): string
     {
+        $prefix = ClinicSettingsService::get('prescription.prefix', 'RX');
+        $seqLen = ClinicSettingsService::getInt('prescription.sequence_length', 4);
         $date = now()->format('Ymd');
-        $lastPrescription = self::where('prescription_number', 'like', "RX-{$date}-%")
+        $lastPrescription = self::where('prescription_number', 'like', "{$prefix}-{$date}-%")
             ->orderByDesc('prescription_number')
             ->first();
 
         if ($lastPrescription) {
-            $lastNumber = (int) substr($lastPrescription->prescription_number, -4);
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            $lastNumber = (int) substr($lastPrescription->prescription_number, -$seqLen);
+            $newNumber = str_pad($lastNumber + 1, $seqLen, '0', STR_PAD_LEFT);
         } else {
-            $newNumber = '0001';
+            $newNumber = str_pad(1, $seqLen, '0', STR_PAD_LEFT);
         }
 
-        return "RX-{$date}-{$newNumber}";
+        return "{$prefix}-{$date}-{$newNumber}";
     }
 
     public function patient()

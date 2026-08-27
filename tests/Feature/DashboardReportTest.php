@@ -571,8 +571,9 @@ test('financial report loads', function () {
 test('financial report shows totals', function () {
     $response = $this->actingAs($this->user)->get(route('reports.financial'));
     $response->assertOk();
-    $response->assertSee('Total Invoiced');
-    $response->assertSee('Total Paid');
+    $response->assertSee('Total Revenue');
+    $response->assertSee('Total Expenses');
+    $response->assertSee('Net Income');
     $response->assertSee('Outstanding');
 });
 

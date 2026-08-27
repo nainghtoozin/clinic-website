@@ -8,10 +8,6 @@
         @endcan
     </x-page-header>
 
-    @php
-        $pendingCount = \App\Models\Appointment::where('status', \App\Enums\AppointmentStatus::Pending)->count();
-    @endphp
-
     @if ($pendingCount > 0)
         <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
             <i class="bi bi-bell-fill me-2"></i>

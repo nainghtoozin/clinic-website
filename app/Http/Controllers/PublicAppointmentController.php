@@ -75,20 +75,22 @@ class PublicAppointmentController extends Controller
         $date = Carbon::parse($validated['date']);
 
         $workingDay = $this->availability->isWorkingDay($doctor, $date);
+        $isUnavailable = $this->availability->isUnavailableDate($doctor, $date);
         $hours = $this->availability->workingHours($doctor);
-        $slots = $workingDay && $hours
+        $slots = $workingDay && $hours && !$isUnavailable
             ? $this->availability->availableSlots($doctor, $date)
             : [];
 
-        $available = $workingDay && $hours !== null && count($slots) > 0;
+        $available = $workingDay && !$isUnavailable && $hours !== null && count($slots) > 0;
 
         return response()->json([
             'date' => $date->toDateString(),
             'available' => $available,
             'working_day' => $workingDay,
+            'is_unavailable' => $isUnavailable,
             'working_hours' => $hours,
             'slots' => $slots,
-            'message' => $this->availabilityMessage($available, $workingDay, $hours),
+            'message' => $this->availabilityMessage($available, $workingDay, $hours, $isUnavailable),
         ]);
     }
 
@@ -139,6 +141,13 @@ class PublicAppointmentController extends Controller
             ])->withInput();
         }
 
+        // 3b. Check if the date is marked as unavailable.
+        if ($this->availability->isUnavailableDate($doctor, $validated['date'])) {
+            return back()->withErrors([
+                'date' => 'This doctor is unavailable on the selected date. Please choose another date.',
+            ])->withInput();
+        }
+
         // 4. Time must sit inside working hours and land exactly on a generated slot.
         if (! $this->availability->isWithinWorkingHours($doctor, $validated['time'])) {
             return back()->withErrors([
@@ -153,7 +162,7 @@ class PublicAppointmentController extends Controller
         }
 
         // 5. Real-time conflict detection (covers concurrent bookings).
-        if ($this->availability->hasConflict($doctor->id, $validated['date'], $validated['time'], AppointmentAvailabilityService::DEFAULT_DURATION_MINUTES)) {
+        if ($this->availability->hasConflict($doctor->id, $validated['date'], $validated['time'], $this->availability->defaultDuration())) {
             return back()->withErrors([
                 'time' => 'Sorry, this time slot was just booked. Please choose another available time.',
             ])->withInput();
@@ -167,7 +176,7 @@ class PublicAppointmentController extends Controller
             'department_id' => $validated['department_id'],
             'date' => $validated['date'],
             'time' => $validated['time'],
-            'duration' => AppointmentAvailabilityService::DEFAULT_DURATION_MINUTES,
+            'duration' => $this->availability->defaultDuration(),
             'message' => $validated['message'] ?? null,
             'status' => AppointmentStatus::Pending,
             'source' => 'public',
@@ -191,10 +200,14 @@ class PublicAppointmentController extends Controller
         return view('public-appointment.success');
     }
 
-    protected function availabilityMessage(bool $available, bool $workingDay, ?array $hours): string
+    protected function availabilityMessage(bool $available, bool $workingDay, ?array $hours, bool $isUnavailable = false): string
     {
         if (! $workingDay) {
             return 'This doctor does not work on this date. Please choose another day.';
+        }
+
+        if ($isUnavailable) {
+            return 'This doctor is unavailable on this date. Please choose another day.';
         }
 
         return 'No appointment times are available for this doctor on this date.';
